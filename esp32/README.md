@@ -17,7 +17,7 @@ Optional: If you need, change the other options according to your requirements.
 
 ### Build and Flash
 
-You can run buildesp.sh in the root directory if you've added idf.py to exports in the terminal and you've configured the project already. 
+You can run `buildesp.sh` in the root directory if you've added idf.py to exports in the terminal and you've configured the project already. 
 
 Build the project and flash it to the board, then run the monitor tool to view the serial output:
 
