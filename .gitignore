@@ -1,3 +1,5 @@
 esp32/.cache/
 esp32/build/
 esp32/sdkconfig*
+.cache/
+compile_commands.json

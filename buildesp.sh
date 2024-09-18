@@ -18,6 +18,7 @@ BUILD_RESULT=$(idf.py build)
 BUILD_SUCCESS=$(echo "$BUILD_RESULT" | rg -i "project build complete")
 if [ -z "$BUILD_SUCCESS" ]; then
   echo "Build failed"
+  echo "$BUILD_RESULT"
   exit 1;
 else
   echo "Build success"

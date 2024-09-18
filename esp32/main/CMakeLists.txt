@@ -1,3 +1,3 @@
-idf_component_register(SRCS "main.c" "wifi.c"
+idf_component_register(SRCS "main.c" "wifi.c" "mqtt.c"
                     INCLUDE_DIRS "."
-                    PRIV_REQUIRES esp_wifi nvs_flash)
+                    PRIV_REQUIRES esp_wifi nvs_flash mqtt)
