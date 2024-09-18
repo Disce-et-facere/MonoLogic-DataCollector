@@ -7,9 +7,12 @@
 #include "freertos/task.h"
 #include <string.h>
 
-#define EXAMPLE_ESP_WIFI_SSID CONFIG_ESP_WIFI_SSID
-#define EXAMPLE_ESP_WIFI_PASS CONFIG_ESP_WIFI_PASSWORD
-#define EXAMPLE_ESP_MAXIMUM_RETRY CONFIG_ESP_MAXIMUM_RETRY
+#define ESP_WIFI_SSID CONFIG_ESP_WIFI_SSID
+#define ESP_WIFI_PASS CONFIG_ESP_WIFI_PASSWORD
+#define ESP_MAXIMUM_RETRY CONFIG_ESP_MAXIMUM_RETRY
+
+#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_FAIL_BIT BIT1
 
 #if CONFIG_ESP_WPA3_SAE_PWE_HUNT_AND_PECK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_HUNT_AND_PECK
@@ -47,7 +50,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     esp_wifi_connect();
   } else if (event_base == WIFI_EVENT &&
              event_id == WIFI_EVENT_STA_DISCONNECTED) {
-    if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
+    if (s_retry_num < ESP_MAXIMUM_RETRY) {
       esp_wifi_connect();
       s_retry_num++;
       ESP_LOGI(WIFITAG, "retry to connect to the AP");
@@ -81,8 +84,8 @@ bool wifi_init_sta(void) {
   wifi_config_t wifi_config = {
       .sta =
           {
-              .ssid = EXAMPLE_ESP_WIFI_SSID,
-              .password = EXAMPLE_ESP_WIFI_PASS,
+              .ssid = ESP_WIFI_SSID,
+              .password = ESP_WIFI_PASS,
               /* Authmode threshold resets to WPA2 as default if password
                * matches WPA2 standards (password len => 8). If you want to
                * connect the device to deprecated WEP/WPA networks, Please set
@@ -108,11 +111,11 @@ bool wifi_init_sta(void) {
   /* xEventGroupWaitBits() returns the bits before the call returned, hence we
    * can test which event actually happened. */
   if (bits & WIFI_CONNECTED_BIT) {
-    ESP_LOGI(WIFITAG, "connected to ap SSID:%s password:%s",
-             EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+    ESP_LOGI(WIFITAG, "connected to ap SSID:%s password:%s", ESP_WIFI_SSID,
+             ESP_WIFI_PASS);
   } else if (bits & WIFI_FAIL_BIT) {
     ESP_LOGI(WIFITAG, "Failed to connect to SSID:%s, password:%s",
-             EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+             ESP_WIFI_SSID, ESP_WIFI_PASS);
   } else {
     ESP_LOGE(WIFITAG, "UNEXPECTED EVENT");
   }
