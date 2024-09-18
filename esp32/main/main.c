@@ -6,14 +6,9 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-#include "esp_event.h"
 #include "esp_log.h"
-#include "esp_wifi.h"
-#include "freertos/event_groups.h"
-#include "freertos/task.h"
 #include "nvs_flash.h"
 #include "wifi.h"
-#include <string.h>
 
 void app_main(void) {
   // Initialize NVS
@@ -25,7 +20,8 @@ void app_main(void) {
   }
   ESP_ERROR_CHECK(ret);
 
-  ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+  ESP_LOGI(WIFITAG, "ESP_WIFI_MODE_STA");
   if (wifi_init_sta()) {
+    ESP_LOGI(WIFITAG, "EVERYTHING WORKING, CONNECT TO MQTT HERE");
   }
 }
