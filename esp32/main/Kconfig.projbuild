@@ -1,4 +1,4 @@
-menu "Example Configuration"
+menu "Wifi and MQTT config"
 
     config ESP_WIFI_SSID
         string "WiFi SSID"
