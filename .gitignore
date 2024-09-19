@@ -1,0 +1,5 @@
+# Contact a team member to get the .env file
+.env
+
+# MacOS specific files
+.DS_Store
