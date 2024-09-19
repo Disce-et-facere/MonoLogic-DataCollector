@@ -41,12 +41,10 @@ dht_err_t dht_read(dht_t *dht) {
   ESP_LOGI(DHTTAG, "Starting DHT");
   gpio_set_direction(dht->gpio, GPIO_MODE_OUTPUT);
   gpio_set_level(dht->gpio, 0);
-  ets_delay_us(20000);
+  ets_delay_us(3000);
   gpio_set_level(dht->gpio, 1);
-  ets_delay_us(40);
+  ets_delay_us(25);
   gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
-
-  ESP_LOGI(DHTTAG, "waiting For response");
 
   if (waitForResponse(dht->gpio, 80, 0) == -1) {
     ESP_LOGE(DHTTAG, "first wait error");

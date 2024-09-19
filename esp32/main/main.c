@@ -8,11 +8,40 @@
 */
 #include "dht11.h"
 #include "esp_log.h"
+#include "freertos/idf_additions.h"
 #include "mqtt.h"
 #include "mqtt_client.h"
 #include "nvs_flash.h"
+#include "portmacro.h"
 #include "rom/ets_sys.h"
 #include "wifi.h"
+
+void DHT_task(void *pvParameter) {
+  dht_t dhtStruct;
+  dht_init(&dhtStruct);
+  ESP_LOGI(DHTTAG, "Entering dht loop");
+  while (true) {
+    dht_err_t dhtStatus = dht_read(&dhtStruct);
+    switch (dhtStatus) {
+    case DHT_OK:
+      ESP_LOGI(DHTTAG, "read ok");
+      break;
+    case DHT_TIMEOUT_FAIL:
+      ESP_LOGE(DHTTAG, "Dht timeout error");
+      break;
+    case DHT_FAIL:
+      ESP_LOGE(DHTTAG, "Unk error in dht");
+      break;
+    case DHT_READ_TOO_EARLY:
+      //    ESP_LOGI(DHTTAG, "DHT read too early, using old values");
+      break;
+    case DHT_CHECKSUM_FAIL:
+      ESP_LOGE(DHTTAG, "Dht checksum error");
+      break;
+    }
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
+}
 
 void app_main(void) {
   // Initialize NVS
@@ -33,28 +62,6 @@ void app_main(void) {
     esp_mqtt_client_publish(mqttClient, "/idfpye/qos1", "publish", 0, 1, 0);
     esp_mqtt_client_enqueue(mqttClient, "/idfpye/qos1", "enqueue", 0, 1, 0,
                             false);
-    dht_t dhtStruct;
-    dht_init(&dhtStruct);
-    ESP_LOGI(DHTTAG, "Entering dht loop");
-    while (true) {
-      dht_err_t dhtStatus = dht_read(&dhtStruct);
-      switch (dhtStatus) {
-      case DHT_OK:
-        ESP_LOGI(DHTTAG, "read ok");
-        break;
-      case DHT_TIMEOUT_FAIL:
-        ESP_LOGE(DHTTAG, "Dht timeout error");
-        break;
-      case DHT_FAIL:
-        ESP_LOGE(DHTTAG, "Unk error in dht");
-        break;
-      case DHT_READ_TOO_EARLY:
-        //    ESP_LOGI(DHTTAG, "DHT read too early, using old values");
-        break;
-      case DHT_CHECKSUM_FAIL:
-        ESP_LOGE(DHTTAG, "Dht checksum error");
-        break;
-      }
-    }
   }
+  xTaskCreate(&DHT_task, "DHT task", 2048, NULL, 5, NULL);
 }
