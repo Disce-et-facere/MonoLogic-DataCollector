@@ -63,5 +63,5 @@ void app_main(void) {
     esp_mqtt_client_enqueue(mqttClient, "/idfpye/qos1", "enqueue", 0, 1, 0,
                             false);
   }
-  xTaskCreate(&DHT_task, "DHT task", 2048, NULL, 5, NULL);
+  xTaskCreate(&DHT_task, "DHT task", 4096, NULL, 5, NULL);
 }

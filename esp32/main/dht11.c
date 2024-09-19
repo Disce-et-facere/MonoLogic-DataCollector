@@ -17,8 +17,7 @@ static int16_t waitForResponse(gpio_num_t gpio, int16_t microsToWait,
                                uint8_t level) {
   int16_t microsWaited = 0;
   while (gpio_get_level(gpio) == level) {
-    microsWaited++;
-    if (microsWaited > microsToWait) {
+    if (microsWaited++ > microsToWait) {
       return -1;
     }
     ets_delay_us(1);
@@ -41,9 +40,9 @@ dht_err_t dht_read(dht_t *dht) {
   ESP_LOGI(DHTTAG, "Starting DHT");
   gpio_set_direction(dht->gpio, GPIO_MODE_OUTPUT);
   gpio_set_level(dht->gpio, 0);
-  ets_delay_us(3000);
+  ets_delay_us(20 * 1000);
   gpio_set_level(dht->gpio, 1);
-  ets_delay_us(25);
+  ets_delay_us(40);
   gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
 
   if (waitForResponse(dht->gpio, 80, 0) == -1) {
