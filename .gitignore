@@ -1,0 +1,3 @@
+# Contact a team member to get the .env file
+# The .env file contains sensitive information that should never be shared on GitHub
+.env

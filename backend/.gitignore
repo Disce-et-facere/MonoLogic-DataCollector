@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### ENV ### - Important! This should never be shared on GitHub!
+# Contact a team member to get the .env file
+.env
