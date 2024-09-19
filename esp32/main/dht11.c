@@ -8,7 +8,7 @@
 #include "soc/gpio_num.h"
 
 dht_err_t dht_init(dht_t *dht) {
-  dht->gpio = GPIO_NUM_19;
+  dht->gpio = GPIO_NUM_7;
   dht->lastRead = -2000000;
   return ESP_OK;
 }
@@ -25,6 +25,16 @@ static int16_t waitForResponse(gpio_num_t gpio, int16_t microsToWait,
   return microsWaited;
 }
 
+void wakeDHT(dht_t *dht) {
+  ESP_LOGI(DHTTAG, "Starting DHT");
+  gpio_set_direction(dht->gpio, GPIO_MODE_OUTPUT);
+  gpio_set_level(dht->gpio, 0);
+  ets_delay_us(20 * 1000);
+  gpio_set_level(dht->gpio, 1);
+  ets_delay_us(40);
+  gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
+}
+
 dht_err_t dht_read(dht_t *dht) {
   int64_t curTime = esp_timer_get_time();
   if (curTime < 2000000) {
@@ -37,13 +47,7 @@ dht_err_t dht_read(dht_t *dht) {
   }
   dht->lastRead = curTime;
 
-  ESP_LOGI(DHTTAG, "Starting DHT");
-  gpio_set_direction(dht->gpio, GPIO_MODE_OUTPUT);
-  gpio_set_level(dht->gpio, 0);
-  ets_delay_us(20 * 1000);
-  gpio_set_level(dht->gpio, 1);
-  ets_delay_us(40);
-  gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
+  wakeDHT(dht);
 
   if (waitForResponse(dht->gpio, 80, 0) == -1) {
     ESP_LOGE(DHTTAG, "first wait error");
@@ -56,31 +60,12 @@ dht_err_t dht_read(dht_t *dht) {
 
   uint8_t incomingData[5] = {0};
 
-  for (uint8_t i = 0; i < 40; i++) {
+  for (int i = 0; i < 40; i++) {
     if (waitForResponse(dht->gpio, 50, 0) == -1) {
       return DHT_TIMEOUT_FAIL;
     }
-    int16_t bitData = waitForResponse(dht->gpio, 70, 1);
-    if (bitData == -1) {
-      return DHT_FAIL;
-    }
-    if (bitData > 27) {
-      if (i < 8) {
-        // humidity integral
-        incomingData[0] |= (1 << (7 - i));
-      } else if (i < 16) {
-        // humidity decimal
-        incomingData[1] |= (1 << (7 - (i - 8)));
-      } else if (i < 24) {
-        // temperature integral
-        incomingData[2] |= (1 << (7 - (i - 16)));
-      } else if (i < 32) {
-        // temperature decimal
-        incomingData[3] |= (1 << (7 - (i - 24)));
-      } else {
-        // checksum
-        incomingData[4] |= (1 << (7 - (i - 32)));
-      }
+    if (waitForResponse(dht->gpio, 70, 1) > 28) {
+      incomingData[i / 8] |= (1 << (7 - (i % 8)));
     }
   }
 
@@ -89,10 +74,14 @@ dht_err_t dht_read(dht_t *dht) {
     return DHT_CHECKSUM_FAIL;
   }
 
+  // TODO: Fix the temperature thingy so it reads properly
   dht->temperature.decimal = incomingData[0];
   dht->temperature.integral = incomingData[1];
   dht->humidity.integral = incomingData[2];
   dht->humidity.decimal = incomingData[3];
+
+  dht->tempSimple = incomingData[2];
+  dht->humidSimple = incomingData[0];
 
   return DHT_OK;
 }

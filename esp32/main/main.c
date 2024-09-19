@@ -13,7 +13,6 @@
 #include "mqtt_client.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
-#include "rom/ets_sys.h"
 #include "wifi.h"
 
 void DHT_task(void *pvParameter) {
@@ -25,6 +24,12 @@ void DHT_task(void *pvParameter) {
     switch (dhtStatus) {
     case DHT_OK:
       ESP_LOGI(DHTTAG, "read ok");
+      /*ESP_LOGI(DHTTAG, "Temperature: %d.%d\nHumidity: %d.%d%%",
+               dhtStruct.temperature.integral, dhtStruct.temperature.decimal,
+               dhtStruct.humidity.integral, dhtStruct.humidity.decimal);
+        */
+      ESP_LOGI(DHTTAG, "Temp: %d\tHumid: %d", dhtStruct.tempSimple,
+               dhtStruct.humidSimple);
       break;
     case DHT_TIMEOUT_FAIL:
       ESP_LOGE(DHTTAG, "Dht timeout error");

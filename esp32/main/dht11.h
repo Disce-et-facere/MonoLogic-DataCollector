@@ -26,6 +26,8 @@ typedef struct dht_t {
     int8_t integral;
     uint8_t decimal;
   } humidity;
+  int16_t tempSimple;
+  int16_t humidSimple;
 } dht_t;
 
 dht_err_t dht_init(dht_t *dht);
