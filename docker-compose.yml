@@ -25,7 +25,6 @@ services:
       - "5000:5000"
     env_file:
       - ./.env
-      - ./backend/.env
     command: ./gradlew bootRun
     depends_on:
       mysql:
@@ -34,6 +33,8 @@ services:
   mysql:
     container_name: db-mysql
     image: mysql:latest
+    env_file:
+      - ./.env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -42,7 +43,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     ports:
-      - "3310:3310"
+      - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s

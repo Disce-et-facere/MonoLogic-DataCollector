@@ -48,3 +48,55 @@ This link will generate a Spring Boot project with the following configurations:
    ./gradlew bootRun
    ```
 4. The application will start at http://localhost:8080.
+
+## Server Endpoint Setup Testing
+
+Test endpoint using curl:
+
+```
+curl -i -X POST http://localhost:5000/api/sensor-data \
+-H "Content-Type: application/json" \
+-d '{
+      "name": "Sensor1",
+      "temperature": 22.5,
+      "humidity": 55.0,
+      "timestamp": "2024-09-19T12:00:00"
+    }'
+```
+
+Check data using GET method:
+
+```
+curl -i -X GET http://localhost:5000/api/sensor-data
+```
+
+Check directly in SQL database:
+
+```
+docker exec -it db-mysql mysql -u root -p
+# Enter DB_ROOT_PASSWORD password mentioned in .env file
+USE system_integration_db;
+SELECT * FROM sensor_data;
+```
+
+## Reset mySQL database
+
+_TODO: Move to separate README_
+
+```
+docker-compose down
+docker volume ls # Optional: to find your volume
+docker volume rm <your_project_name>_mysql-data
+```
+
+To list all users created at init:
+
+```
+docker exec -it db-mysql mysql -u root -p
+
+### Enter root password on the command line ###
+
+SELECT user, host FROM mysql.user;
+
+### Make sure that the user specified in .env file was created ###
+```
