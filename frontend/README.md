@@ -1,4 +1,4 @@
-# data-collector (data-collector)
+# frontend (squidy)
 
 frontend to display data point's locations and its data
 
