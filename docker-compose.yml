@@ -10,18 +10,18 @@ services:
       # - frontend
       - backend
 
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   expose:
-  #     - "8080" # Expose to Nginx only
-  ##   ports:
-  ##     - "8080:8080" # Expose to the host machine (for dev only)
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    expose:
+      - "8080" # Expose to Nginx only
+  #   ports:
+  #     - "8080:8080" # Expose to the host machine (for dev only)
 
   backend:
     container_name: backend
