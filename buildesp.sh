@@ -40,5 +40,9 @@ else
 fi
 
 echo "Entering monitor"
-idf.py -p $USB_PORT monitor
+if ! command -v picocom &> /dev/null; then
+  idf.py -p $USB_PORT monitor
+else
+  picocom $USB_PORT --baud 115200
+fi
 
