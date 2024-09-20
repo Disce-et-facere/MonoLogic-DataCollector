@@ -1,5 +1,6 @@
 #include "dht11.h"
 #include "esp_log.h"
+#include "esp_system.h"
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
 #include "mqtt.h"
@@ -27,6 +28,7 @@ void app_main(void) {
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(mqttHandle);
     ESP_LOGE(MQTTTAG, "Could not allocate memory for task");
+    esp_restart();
   }
 
   TaskHandle_t dhtHandle = NULL;
@@ -35,5 +37,6 @@ void app_main(void) {
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(dhtHandle);
     ESP_LOGE(DHTTAG, "Could not allocate memory for task");
+    esp_restart();
   }
 }

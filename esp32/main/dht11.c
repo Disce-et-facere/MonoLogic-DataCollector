@@ -76,14 +76,10 @@ dht_err_t dhtRead(dht_t *dht) {
     return DHT_CHECKSUM_FAIL;
   }
 
-  // TODO: Fix the temperature thingy so it reads properly
   dht->temperature.integer = (uint8_t)incomingData[2];
   dht->temperature.decimal = incomingData[3];
   dht->humidity.integer = (uint8_t)incomingData[0];
   dht->humidity.decimal = incomingData[1];
-
-  dht->tempSimple = incomingData[2];
-  dht->humidSimple = incomingData[0];
 
   return DHT_OK;
 }
