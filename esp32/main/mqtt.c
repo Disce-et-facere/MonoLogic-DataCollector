@@ -58,3 +58,28 @@ esp_mqtt_client_handle_t mqtt_init(void) {
   ESP_ERROR_CHECK(esp_mqtt_client_start(client));
   return client;
 }
+
+void mqttTask(void *pvParameter) {
+  dht_t *dhtStructPtr = (dht_t *)pvParameter;
+  ESP_LOGI(WIFITAG, "ESP_WIFI_MODE_STA");
+  if (wifi_init_sta()) {
+    ESP_LOGI(WIFITAG, "Connected to wifi successfully");
+    ESP_LOGI(MQTTTAG, "MQTT starting");
+    esp_mqtt_client_handle_t mqttClient = mqtt_init();
+    ESP_LOGI(MQTTTAG, "MQTT started");
+    esp_mqtt_client_publish(mqttClient, "/idfpye/qos1", "publish", 0, 1, 0);
+    esp_mqtt_client_enqueue(mqttClient, "/idfpye/qos1", "enqueue", 0, 1, 0,
+                            false);
+    char buff[100];
+    while (true) {
+      sprintf(buff, "{ \"Temperature\":%d.%d, \"Humidity\":%d.%d }",
+              dhtStructPtr->temperature.integer,
+              dhtStructPtr->temperature.decimal, dhtStructPtr->humidity.integer,
+              dhtStructPtr->humidity.decimal);
+      esp_mqtt_client_enqueue(mqttClient, "/idfpye/qos1", buff, 0, 1, 0, false);
+      ESP_LOGI(MQTTTAG, "read temp %d.%d", dhtStructPtr->temperature.integer,
+               dhtStructPtr->temperature.decimal);
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
+    }
+  }
+}

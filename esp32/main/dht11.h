@@ -31,5 +31,6 @@ typedef struct dht_t {
 
 dht_err_t dhtInit(dht_t *dht);
 dht_err_t dhtRead(dht_t *dht);
+void dhtTask(void *pvParameter);
 
 #endif // !__dht11_h

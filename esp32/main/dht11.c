@@ -3,6 +3,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "freertos/idf_additions.h"
 #include "hal/gpio_types.h"
 #include "rom/ets_sys.h"
 #include "soc/gpio_num.h"
@@ -85,4 +86,34 @@ dht_err_t dhtRead(dht_t *dht) {
   dht->humidSimple = incomingData[0];
 
   return DHT_OK;
+}
+
+void dhtTask(void *pvParameter) {
+  dht_t *dhtStructPtr = (dht_t *)pvParameter;
+  ESP_LOGI(DHTTAG, "Entering dht loop");
+  while (true) {
+    dht_err_t dhtStatus = dhtRead(dhtStructPtr);
+    switch (dhtStatus) {
+    case DHT_OK:
+      ESP_LOGI(DHTTAG, "read ok");
+      ESP_LOGI(DHTTAG, "Temperature: %d.%d Humidity: %d.%d%%",
+               dhtStructPtr->temperature.integer,
+               dhtStructPtr->temperature.decimal,
+               dhtStructPtr->humidity.integer, dhtStructPtr->humidity.decimal);
+      break;
+    case DHT_TIMEOUT_FAIL:
+      ESP_LOGE(DHTTAG, "Dht timeout error");
+      break;
+    case DHT_FAIL:
+      ESP_LOGE(DHTTAG, "Unk error in dht");
+      break;
+    case DHT_READ_TOO_EARLY:
+      ESP_LOGI(DHTTAG, "DHT read too early, using old values");
+      break;
+    case DHT_CHECKSUM_FAIL:
+      ESP_LOGE(DHTTAG, "Dht checksum error");
+      break;
+    }
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
 }
