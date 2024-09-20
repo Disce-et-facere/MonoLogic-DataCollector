@@ -4,11 +4,16 @@ START_DIR=""
 
 command -v idf.py > /dev/null 2>&1 || { 
   echo "idf.py not found, adding to export"
-  START_DIR=$PWD
-  cd ~/IOT23/esp/esp-idf/
-  source export.sh
-  echo "START DIR IS $START_DIR"
-  cd $START_DIR
+  if [ -d ~/IOT23/esp/esp-idf/ ]; then
+    START_DIR=$PWD
+    cd ~/IOT23/esp/esp-idf/
+    source export.sh
+    echo "START DIR IS $START_DIR"
+    cd $START_DIR
+  else
+    echo "Could not find idf dir, Exiting"
+    exit 1;
+  fi
 }
 
 echo "Starting build"
