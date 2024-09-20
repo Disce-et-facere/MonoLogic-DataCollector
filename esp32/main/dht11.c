@@ -6,8 +6,9 @@
 #include "hal/gpio_types.h"
 #include "rom/ets_sys.h"
 #include "soc/gpio_num.h"
+#include <stdint.h>
 
-dht_err_t dht_init(dht_t *dht) {
+dht_err_t dhtInit(dht_t *dht) {
   dht->gpio = GPIO_NUM_7;
   dht->lastRead = -2000000;
   return ESP_OK;
@@ -26,7 +27,7 @@ static int16_t waitForResponse(gpio_num_t gpio, int16_t microsToWait,
 }
 
 void wakeDHT(dht_t *dht) {
-  ESP_LOGI(DHTTAG, "Starting DHT");
+  ESP_LOGI(DHTTAG, "Waking DHT");
   gpio_set_direction(dht->gpio, GPIO_MODE_OUTPUT);
   gpio_set_level(dht->gpio, 0);
   ets_delay_us(20 * 1000);
@@ -35,7 +36,7 @@ void wakeDHT(dht_t *dht) {
   gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
 }
 
-dht_err_t dht_read(dht_t *dht) {
+dht_err_t dhtRead(dht_t *dht) {
   int64_t curTime = esp_timer_get_time();
   if (curTime < 2000000) {
     ets_delay_us(2000000 - curTime);
@@ -58,7 +59,7 @@ dht_err_t dht_read(dht_t *dht) {
     return DHT_TIMEOUT_FAIL;
   }
 
-  uint8_t incomingData[5] = {0};
+  int8_t incomingData[5] = {0};
 
   for (int i = 0; i < 40; i++) {
     if (waitForResponse(dht->gpio, 50, 0) == -1) {
@@ -75,10 +76,10 @@ dht_err_t dht_read(dht_t *dht) {
   }
 
   // TODO: Fix the temperature thingy so it reads properly
-  dht->temperature.decimal = incomingData[0];
-  dht->temperature.integral = incomingData[1];
-  dht->humidity.integral = incomingData[2];
-  dht->humidity.decimal = incomingData[3];
+  dht->temperature.integer = (uint8_t)incomingData[2];
+  dht->temperature.decimal = incomingData[3];
+  dht->humidity.integer = (uint8_t)incomingData[0];
+  dht->humidity.decimal = incomingData[1];
 
   dht->tempSimple = incomingData[2];
   dht->humidSimple = incomingData[0];

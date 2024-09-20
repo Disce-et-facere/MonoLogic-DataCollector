@@ -17,19 +17,16 @@
 
 void DHT_task(void *pvParameter) {
   dht_t dhtStruct;
-  dht_init(&dhtStruct);
+  dhtInit(&dhtStruct);
   ESP_LOGI(DHTTAG, "Entering dht loop");
   while (true) {
-    dht_err_t dhtStatus = dht_read(&dhtStruct);
+    dht_err_t dhtStatus = dhtRead(&dhtStruct);
     switch (dhtStatus) {
     case DHT_OK:
       ESP_LOGI(DHTTAG, "read ok");
-      /*ESP_LOGI(DHTTAG, "Temperature: %d.%d\nHumidity: %d.%d%%",
-               dhtStruct.temperature.integral, dhtStruct.temperature.decimal,
-               dhtStruct.humidity.integral, dhtStruct.humidity.decimal);
-        */
-      ESP_LOGI(DHTTAG, "Temp: %d\tHumid: %d", dhtStruct.tempSimple,
-               dhtStruct.humidSimple);
+      ESP_LOGI(DHTTAG, "Temperature: %d.%d Humidity: %d.%d%%",
+               dhtStruct.temperature.integer, dhtStruct.temperature.decimal,
+               dhtStruct.humidity.integer, dhtStruct.humidity.decimal);
       break;
     case DHT_TIMEOUT_FAIL:
       ESP_LOGE(DHTTAG, "Dht timeout error");
