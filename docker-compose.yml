@@ -1,4 +1,15 @@
 services:
+  nginx:
+    container_name: reverse-proxy
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+
   frontend:
     container_name: frontend
     build:
