@@ -8,6 +8,13 @@ scp -r . root@178.128.140.118:/root/
 ### ENTER PASSWORD ###
 ssh root@178.128.140.118
 ### ENTER PASSWORD ###
+```
+
+### Follow this guide to install Linux-Server:
+
+https://linuxize.com/post/how-to-install-gradle-on-ubuntu-20-04/
+
+```
 docker-compose up -d
 ```
 
