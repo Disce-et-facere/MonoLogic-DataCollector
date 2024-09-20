@@ -1,0 +1,50 @@
+name: 'Docker build and release'
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - 'main'
+    tags:
+    # For school project only use production
+    #   - 'test-*'
+    #   - 'staging-*'
+    #   - 'dev-*'
+    #   - 'beta-*'
+      - 'production-*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up SSH for deployment
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # SSH into your droplet and deploy containers
+      - name: Deploy to DigitalOcean Droplet
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} << 'EOF'
+            # Navigate to your project directory
+            cd /path/to/your/project/on/droplet
+
+            # Pull the latest code from the repository
+            git pull origin main
+
+            # Stop and remove current containers
+            docker-compose down
+
+            # Build the Docker images for backend and frontend directly on the droplet
+            docker-compose up -d --build
+
+            # Clean up unused images
+            docker image prune -f
+          EOF
