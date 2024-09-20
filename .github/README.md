@@ -1,5 +1,16 @@
 # Deploy Repo to DigitalOcean
 
+### Brute-Force Deploy Repo
+
+```
+cd <repo-root>
+scp -r . root@178.128.140.118:/root/
+### ENTER PASSWORD ###
+ssh root@178.128.140.118
+### ENTER PASSWORD ###
+docker-compose up -d
+```
+
 # Login to Droplet
 
 1. In command line: `ssh root@178.128.140.118`
@@ -16,19 +27,4 @@ sudo apt-get install docker.io -y
 sudo apt-get install docker-compose -y
 ```
 
-<!-- 3. Expose ports for frontend & backend
-
-```
-apt-get update
-apt-get install ufw -y
-ufw allow 5000
-ufw allow 8080
-ufw allow OpenSSH
-ufw enable
-ufw status
-```
-
-4. Clone repo into droplet
-   ... -->
-
-### TODO: Add remaining instructions... // ST 2024-09-20
+### TODO: Add DevOps instructions... // ST 2024-09-20
