@@ -1,5 +1,4 @@
 #include "mqtt.h"
-#include "esp_event.h"
 #include "esp_event_base.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
@@ -60,6 +59,7 @@ esp_mqtt_client_handle_t mqtt_init(void) {
 }
 
 void mqttTask(void *pvParameter) {
+#define buffSize 100
   dht_t *dhtStructPtr = (dht_t *)pvParameter;
   ESP_LOGI(WIFITAG, "ESP_WIFI_MODE_STA");
   if (wifi_init_sta()) {
@@ -70,15 +70,13 @@ void mqttTask(void *pvParameter) {
     esp_mqtt_client_publish(mqttClient, "/idfpye/qos1", "publish", 0, 1, 0);
     esp_mqtt_client_enqueue(mqttClient, "/idfpye/qos1", "enqueue", 0, 1, 0,
                             false);
-    char buff[100];
+    char buff[buffSize];
     while (true) {
-      sprintf(buff, "{ \"Temperature\":%d.%d, \"Humidity\":%d.%d }",
-              dhtStructPtr->temperature.integer,
-              dhtStructPtr->temperature.decimal, dhtStructPtr->humidity.integer,
-              dhtStructPtr->humidity.decimal);
+      snprintf(buff, buffSize, "{ \"Temperature\":%d.%d, \"Humidity\":%d.%d }",
+               dhtStructPtr->temperature.integer,
+               dhtStructPtr->temperature.decimal,
+               dhtStructPtr->humidity.integer, dhtStructPtr->humidity.decimal);
       esp_mqtt_client_enqueue(mqttClient, "/idfpye/qos1", buff, 0, 1, 0, false);
-      ESP_LOGI(MQTTTAG, "read temp %d.%d", dhtStructPtr->temperature.integer,
-               dhtStructPtr->temperature.decimal);
       vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
   }
