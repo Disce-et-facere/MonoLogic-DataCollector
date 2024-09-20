@@ -7,7 +7,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      # - frontend
+      - frontend
       - backend
 
   frontend:
@@ -18,10 +18,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    expose:
-      - "8080" # Expose to Nginx only
-  #   ports:
-  #     - "8080:8080" # Expose to the host machine (for dev only)
+    expose: # Expose to Nginx
+      - "8080"
 
   backend:
     container_name: backend
@@ -34,10 +32,8 @@ services:
       - ~/.gradle:/root/.gradle
       - ./backend/src:/app/src 
       - ./backend/target:/app/target
-    expose:
-      - "5000" # Expose to Nginx only
-    # ports:
-    #   - "5000:5000" # Expose to the host machine (for dev only)
+    expose: # Expose to Nginx
+      - "5000"
     env_file:
       - ./.env
     command: ./gradlew bootRun
