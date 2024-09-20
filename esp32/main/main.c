@@ -64,7 +64,7 @@ void mqttTask(void *pvParameter) {
                             false);
     char buff[100];
     while (true) {
-      sprintf(buff, "{Temperature:%d.%d Humidity:%d.%d}",
+      sprintf(buff, "{ \"Temperature\":%d.%d, \"Humidity\":%d.%d }",
               dhtStructPtr->temperature.integer,
               dhtStructPtr->temperature.decimal, dhtStructPtr->humidity.integer,
               dhtStructPtr->humidity.decimal);
