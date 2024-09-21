@@ -7,19 +7,19 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - frontend
+      # - frontend
       - backend
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    expose: # Expose to Nginx
-      - "8080"
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   expose: # Expose to Nginx
+  #     - "8080"
 
   backend:
     container_name: backend
