@@ -28,7 +28,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend:/app
-      - /app/target
       - ~/.gradle:/root/.gradle
       - ./backend/src:/app/src 
       - ./backend/target:/app/target

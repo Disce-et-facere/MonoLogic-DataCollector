@@ -47,6 +47,10 @@ docker-compose up
 cd <repo-root>
 scp -r . root@178.128.140.118:/root/
 ### ENTER PASSWORD ###
+
 ssh root@178.128.140.118
 ### ENTER PASSWORD ###
+
+docker-compose down
+docker-compose up
 ```
