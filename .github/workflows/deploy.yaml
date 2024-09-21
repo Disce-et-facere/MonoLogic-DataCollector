@@ -1,13 +1,12 @@
 name: 'Docker build and release'
 on:
   pull_request:
-    branches:
-      - '*'
+    # branches:
+    #   - '*'
   push:
-    branches:
-      - 'main'
+    # branches:
+    #   - 'main'
     tags:
-    # For school project only use production
     #   - 'test-*'
     #   - 'staging-*'
     #   - 'dev-*'
@@ -33,9 +32,6 @@ jobs:
       - name: Deploy to DigitalOcean Droplet
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} << 'EOF'
-            # Navigate to your project directory
-            cd /path/to/your/project/on/droplet
-
             # Pull the latest code from the repository
             git pull origin main
 

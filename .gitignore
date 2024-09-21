@@ -3,3 +3,7 @@
 
 # MacOS specific files
 .DS_Store
+
+# Deployment SSH keys
+id_rsa
+id_rsa.pub
