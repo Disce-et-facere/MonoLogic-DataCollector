@@ -15,10 +15,12 @@ public class SensorData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String mac; // Added mac field to link with IoT device
     private Double temperature;
     private Double humidity;
     private LocalDateTime timestamp;
+    private Double latitude; // Added latitude field
+    private Double longitude; // Added longitude field
 
     // Getters and setters
     public Long getId() {
@@ -29,12 +31,12 @@ public class SensorData {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getMac() {
+        return mac;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setMac(String mac) {
+        this.mac = mac;
     }
 
     public Double getTemperature() {
@@ -59,5 +61,21 @@ public class SensorData {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }

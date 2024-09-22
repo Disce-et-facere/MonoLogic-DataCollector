@@ -17,6 +17,10 @@ public class SensorDataService {
         return sensorDataRepository.findAll();
     }
 
+    public List<SensorData> getSensorDataByMac(String mac) {
+        return sensorDataRepository.findByMac(mac);
+    }
+
     public SensorData saveSensorData(SensorData sensorData) {
         return sensorDataRepository.save(sensorData);
     }
