@@ -86,9 +86,8 @@ public class SensorDataController {
         boolean isValid = deviceService.validateMAC(mac);
 
         if (isValid) {
-            String clientIp = getClientIp(request);
-
-            // Perform IP lookup
+            // Perform IP lookup to get the location data
+            String clientIp = request.getHeader("X-Forwarded-For");
             Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
             // System.out.println("IP Location data: " + ipLocation);
 
@@ -106,33 +105,5 @@ public class SensorDataController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Device not authorized");
         }
-    }
-
-    // Utility method to get the public client IP address
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED");
-        }
-        // Fallback to getRemoteAddr if none of the headers are available
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-
-        // In case multiple IPs are in X-Forwarded-For Header, use the first one
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0];
-        }
-
-        return ip;
     }
 }
