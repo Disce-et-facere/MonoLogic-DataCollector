@@ -28,11 +28,30 @@ public class SensorDataController {
     @PostMapping("/{mac}")
     public ResponseEntity<String> saveSensorData(@PathVariable String mac, @RequestBody SensorData sensorData) {
         boolean isValid = deviceService.validateMAC(mac);
+
         if (isValid) {
+            // Set the MAC address in the sensorData object
+            sensorData.setMac(mac);
+
+            // Save sensor data with MAC
             sensorDataService.saveSensorData(sensorData);
+
             return ResponseEntity.ok("Sensor data saved successfully");
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Device not authorized");
         }
     }
+
+    // @PostMapping("/{mac}")
+    // public ResponseEntity<String> saveSensorData(@PathVariable String mac,
+    // @RequestBody SensorData sensorData) {
+    // boolean isValid = deviceService.validateMAC(mac);
+    // if (isValid) {
+    // sensorDataService.saveSensorData(sensorData);
+    // return ResponseEntity.ok("Sensor data saved successfully");
+    // } else {
+    // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Device not
+    // authorized");
+    // }
+    // }
 }
