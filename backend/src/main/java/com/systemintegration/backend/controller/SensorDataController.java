@@ -1,5 +1,6 @@
 package com.systemintegration.backend.controller;
 
+import com.systemintegration.backend.dto.SensorDataResponseDTO;
 import com.systemintegration.backend.model.SensorData;
 import com.systemintegration.backend.service.SensorDataService;
 import com.systemintegration.backend.service.IoTDeviceService;
@@ -21,21 +22,53 @@ public class SensorDataController {
     private IoTDeviceService deviceService;
 
     @GetMapping
-    public List<SensorData> getAllSensorData() {
-        return sensorDataService.getAllSensorData();
+    public ResponseEntity<List<SensorDataResponseDTO>> getAllSensorData() {
+        List<SensorData> sensorDataList = sensorDataService.getAllSensorData();
+
+        // Map sensor data to DTOs and fetch device names
+        List<SensorDataResponseDTO> responseDTOs = sensorDataList.stream().map(sensorData -> {
+            String deviceName = deviceService.getDeviceNameByMac(sensorData.getMac());
+            SensorDataResponseDTO dto = new SensorDataResponseDTO();
+            dto.setId(sensorData.getId());
+            dto.setMac(sensorData.getMac());
+            dto.setName(deviceName); // Set the device name
+            dto.setTemperature(sensorData.getTemperature());
+            dto.setHumidity(sensorData.getHumidity());
+            dto.setTimestamp(sensorData.getTimestamp());
+            dto.setLatitude(sensorData.getLatitude());
+            dto.setLongitude(sensorData.getLongitude());
+            return dto;
+        }).toList();
+
+        return ResponseEntity.ok(responseDTOs);
     }
 
     @GetMapping("/{mac}")
-    public ResponseEntity<List<SensorData>> getSensorDataByMac(@PathVariable String mac) {
-        // Validate that the MAC address exists in the IoT devices
+    public ResponseEntity<List<SensorDataResponseDTO>> getSensorDataByMac(@PathVariable String mac) {
         boolean isValid = deviceService.validateMAC(mac);
 
         if (isValid) {
             // Get all sensor data for the provided MAC address
             List<SensorData> sensorDataList = sensorDataService.getSensorDataByMac(mac);
-            return ResponseEntity.ok(sensorDataList);
+            String deviceName = deviceService.getDeviceNameByMac(mac);
+
+            // Map sensor data to DTOs
+            List<SensorDataResponseDTO> responseDTOs = sensorDataList.stream().map(sensorData -> {
+                SensorDataResponseDTO dto = new SensorDataResponseDTO();
+                dto.setId(sensorData.getId());
+                dto.setMac(mac);
+                dto.setName(deviceName);
+                dto.setTemperature(sensorData.getTemperature());
+                dto.setHumidity(sensorData.getHumidity());
+                dto.setTimestamp(sensorData.getTimestamp());
+                dto.setLatitude(sensorData.getLatitude());
+                dto.setLongitude(sensorData.getLongitude());
+                return dto;
+            }).toList();
+
+            return ResponseEntity.ok(responseDTOs);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Return 404 if the MAC is not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
