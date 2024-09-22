@@ -1,11 +1,6 @@
 name: 'Docker build and release'
 on:
-  pull_request:
-    # branches:
-    #   - '*'
   push:
-    # branches:
-    #   - 'main'
     tags:
     #   - 'test-*'
     #   - 'staging-*'
