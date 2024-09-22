@@ -4,12 +4,16 @@ import com.systemintegration.backend.dto.SensorDataResponseDTO;
 import com.systemintegration.backend.model.SensorData;
 import com.systemintegration.backend.service.SensorDataService;
 import com.systemintegration.backend.service.IoTDeviceService;
+import com.systemintegration.backend.service.IpDataService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sensor-data")
@@ -20,6 +24,9 @@ public class SensorDataController {
 
     @Autowired
     private IoTDeviceService deviceService;
+
+    @Autowired
+    private IpDataService ipDataService;
 
     @GetMapping
     public ResponseEntity<List<SensorDataResponseDTO>> getAllSensorData() {
@@ -73,15 +80,59 @@ public class SensorDataController {
     }
 
     @PostMapping("/{mac}")
-    public ResponseEntity<String> saveSensorData(@PathVariable String mac, @RequestBody SensorData sensorData) {
+    public ResponseEntity<String> saveSensorData(@PathVariable String mac,
+            @RequestBody SensorData sensorData,
+            HttpServletRequest request) {
         boolean isValid = deviceService.validateMAC(mac);
 
         if (isValid) {
+            String clientIp = getClientIp(request);
+
+            // Perform IP lookup
+            Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
+            // System.out.println("IP Location data: " + ipLocation);
+
+            // Extract latitude and longitude from the IP lookup response
+            Double latitude = (Double) ipLocation.get("latitude");
+            Double longitude = (Double) ipLocation.get("longitude");
+
+            // Save sensor data to the database
             sensorData.setMac(mac);
+            sensorData.setLatitude(latitude); // Set the latitude
+            sensorData.setLongitude(longitude); // Set the longitude
+
             sensorDataService.saveSensorData(sensorData);
             return ResponseEntity.ok("Sensor data saved successfully");
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Device not authorized");
         }
+    }
+
+    // Utility method to get the public client IP address
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED");
+        }
+        // Fallback to getRemoteAddr if none of the headers are available
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+
+        // In case multiple IPs are in X-Forwarded-For Header, use the first one
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0];
+        }
+
+        return ip;
     }
 }
