@@ -1,4 +1,4 @@
-# System Integration IoT Backend
+# Java Spring Boot Backend
 
 ## Overview
 
@@ -38,7 +38,138 @@ This link will generate a Spring Boot project with the following configurations:
 - **Spring Boot Actuator**: For monitoring and managing the application.
 - **MySQL Driver**: For connecting to a MySQL database.
 
-## How to Run
+## API Endpoint Structure
+
+### IoT Device Endpoints
+
+#### 1. **Get All IoT Devices**
+
+- **Endpoint**: `GET /api/iot-device`
+- **Description**: Retrieve all registered IoT devices from MySQL database.
+- **Response**:
+  ```json
+  [
+    {
+      "mac": "A1:B2:C3:D4:E5",
+      "name": "Device1"
+    },
+    {
+      "mac": "B2:C3:D4:E6:F7",
+      "name": "Device2"
+    }
+  ]
+  ```
+
+#### 2. **Add a New IoT Device**
+
+- **Endpoint**: `POST /api/iot-device`
+- **Description**: Register a new IoT device with a `mac` and `name`.
+- **Parameters**:
+  - `name` (String): Name of the device.
+  - `mac` (String): Unique MAC address of the device.
+- **Response**:
+  ```json
+  {
+    "message": "Device added successfully"
+  }
+  ```
+
+#### 3. **Authenticate IoT Device**
+
+- **Endpoint**: `POST /api/iot-device/authenticate`
+- **Description**: Authenticate a device by its MAC address.
+- **Parameters**:
+  - `mac` (String): MAC address of the device.
+- **Response**:
+  ```json
+  {
+    "message": "Device authenticated"
+  }
+  ```
+
+#### 4. **Delete an IoT Device**
+
+- **Endpoint**: `DELETE /api/iot-device/{mac}`
+- **Description**: Remove a device from the system using its MAC address.
+- **Parameters**:
+  - `mac` (String): MAC address of the device to be deleted.
+- **Response**:
+  ```json
+  {
+    "message": "Device removed successfully"
+  }
+  ```
+
+### Sensor Data Endpoints
+
+#### 1. **Get All Sensor Data**
+
+- **Endpoint**: `GET /api/sensor-data`
+- **Description**: Retrieve all stored sensor data from all devices.
+- **Response**:
+  ```json
+  [
+    {
+      "id": 1,
+      "mac": "A1:B2:C3:D4:E5",
+      "name": "Test-ESP32-Device",
+      "temperature": 21.1,
+      "humidity": 55.0,
+      "timestamp": "2024-09-22T16:01:00",
+      "latitude": 59.3293,
+      "longitude": 18.0686
+    }
+  ]
+  ```
+
+#### 2. **Get Sensor Data by MAC**
+
+- **Endpoint**: `GET /api/sensor-data/{mac}`
+- **Description**: Retrieve sensor data for a specific device using its MAC address.
+- **Parameters**:
+  - `mac` (String): MAC address of the device.
+- **Response**:
+  ```json
+  [
+    {
+      "id": 1,
+      "mac": "A1:B2:C3:D4:E5",
+      "name": "Test-ESP32-Device",
+      "temperature": 21.1,
+      "humidity": 55.0,
+      "timestamp": "2024-09-22T16:01:00",
+      "latitude": 59.3293,
+      "longitude": 18.0686
+    }
+  ]
+  ```
+
+#### 3. **Submit Sensor Data**
+
+- **Endpoint**: `POST /api/sensor-data/{mac}`
+- **Description**: Submit new sensor data for a specific IoT device.
+- **Parameters**:
+  - `mac` (String): MAC address of the device.
+  - **Body**:
+    ```json
+    {
+      "temperature": 29.1,
+      "humidity": 99.0,
+      "timestamp": "2024-09-19T12:55:55",
+      "latitude": 59.3293, // Optional!
+      "longitude": 18.0686 // Optional!
+    }
+    ```
+- **Response**:
+  ```json
+  {
+    "message": "Sensor data saved successfully"
+  }
+  ```
+
+# Optional Information
+
+## How to Run without Docker
 
 1. Make sure you have grade installed.
 
@@ -49,32 +180,41 @@ This link will generate a Spring Boot project with the following configurations:
    ```bash
    ./gradlew bootRun
    ```
-4. The application will start at http://localhost:8080.
+4. The application will start at http://localhost:5000.
 
-## Server Endpoint Setup Testing
+## API Endpoint Testing Examples
 
-Test endpoint using curl:
+### 1. Add a New IoT Device
 
+Test the `POST /api/iot-devices` endpoint using `curl` to add a new IoT device:
+
+```bash
+curl -i -k -X POST https://localhost/api/iot-device \
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d 'name=Device1&mac=A1:B2:C3:D4:E5'
 ```
-curl -i -X POST http://localhost:5000/api/sensor-data \
+
+Test the `POST /api/sensor-data/{mac}` endpoint using `curl` to add a new sensor data:
+
+```bash
+curl -i -k -X POST https://localhost/api/sensor-data/A1:B2:C3:D4:E5 \
 -H "Content-Type: application/json" \
 -d '{
-      "name": "Sensor1",
       "temperature": 22.5,
       "humidity": 55.0,
-      "timestamp": "2024-09-19T12:00:00"
+      "timestamp": "2024-09-22T12:00:00"
     }'
 ```
 
-Check data using GET method:
+Test the `GET /api/sensor-data` endpoint using `curl` to get all sensor data:
 
-```
-curl -i -X GET http://localhost:5000/api/sensor-data
+```bash
+curl -i -k -X GET https://localhost/api/sensor-data
 ```
 
 Check directly in SQL database:
 
-```
+```bash
 docker exec -it db-mysql mysql -u root -p
 # Enter DB_ROOT_PASSWORD password mentioned in .env file
 USE system_integration_db;
@@ -85,7 +225,7 @@ SELECT * FROM sensor_data;
 
 _TODO: Move to separate README_
 
-```
+```bash
 docker-compose down
 docker volume ls # Optional: to find your volume
 docker volume rm <your_project_name>_mysql-data
@@ -93,7 +233,7 @@ docker volume rm <your_project_name>_mysql-data
 
 To list all users created at init:
 
-```
+```bash
 docker exec -it db-mysql mysql -u root -p
 
 ### Enter root password on the command line ###
