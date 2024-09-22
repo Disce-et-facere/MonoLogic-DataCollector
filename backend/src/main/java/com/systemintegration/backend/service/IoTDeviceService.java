@@ -7,28 +7,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.UUID;
-
 @Service
 public class IoTDeviceService {
+
     @Autowired
     private IoTDeviceRepository deviceRepository;
 
-    public UUID addDevice(String name, String mac) {
+    public void addDevice(String name, String mac) {
         IoTDevice device = new IoTDevice();
         device.setName(name);
         device.setMac(mac);
-        device = deviceRepository.save(device);
-        return device.getId();
+        deviceRepository.save(device);
     }
 
-    public UUID authenticateDevice(String mac) {
+    public IoTDevice authenticateDevice(String mac) {
         return deviceRepository.findByMac(mac)
-                .map(IoTDevice::getId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found"));
     }
 
-    public boolean validateUUID(UUID deviceId) {
-        return deviceRepository.existsById(deviceId);
+    public boolean validateMAC(String mac) {
+        boolean isValid = deviceRepository.findByMac(mac).isPresent();
+        return isValid;
     }
 }
