@@ -2,11 +2,11 @@ package com.systemintegration.backend.controller;
 
 import com.systemintegration.backend.model.SensorData;
 import com.systemintegration.backend.service.SensorDataService;
+import com.systemintegration.backend.service.IoTDeviceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -14,21 +14,25 @@ import java.util.List;
 @RequestMapping("/api/sensor-data")
 public class SensorDataController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SensorDataController.class);
-
     @Autowired
     private SensorDataService sensorDataService;
+
+    @Autowired
+    private IoTDeviceService deviceService;
 
     @GetMapping
     public List<SensorData> getAllSensorData() {
         return sensorDataService.getAllSensorData();
     }
 
-    @PostMapping
-    public SensorData saveSensorData(@RequestBody SensorData sensorData) {
-        // Log a message when a POST request is received
-        logger.info("Received POST request with data: {}", sensorData.toString());
-
-        return sensorDataService.saveSensorData(sensorData);
+    @PostMapping("/{mac}")
+    public ResponseEntity<String> saveSensorData(@PathVariable String mac, @RequestBody SensorData sensorData) {
+        boolean isValid = deviceService.validateMAC(mac);
+        if (isValid) {
+            sensorDataService.saveSensorData(sensorData);
+            return ResponseEntity.ok("Sensor data saved successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Device not authorized");
+        }
     }
 }
