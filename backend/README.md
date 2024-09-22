@@ -14,6 +14,8 @@ Click on the link below to generate the initial setup of the project with the re
 
 [Generate System Integration IoT Backend Project](https://start.spring.io/#!type=gradle-project-kotlin&language=java&platformVersion=3.3.3&packaging=jar&jvmVersion=22&groupId=com.systemintegration&artifactId=backend&name=System%20Integration%20IoT%20Backend&description=A%20Spring%20Boot%20REST%20API%20for%20collecting%20and%20serving%20IoT%20device%20data%2C%20integrated%20with%20a%20MySQL%20database&packageName=com.systemintegration.backend&dependencies=web,devtools,data-jpa,security,actuator,mysql)
 
+_Note: In this project we decided to remove Spring Security as we only needed HTTPS support that the nginx reverse proxy will handle /ST 2024-09-22_
+
 This link will generate a Spring Boot project with the following configurations:
 
 - **Type**: Gradle (Kotlin)

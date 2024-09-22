@@ -2,13 +2,22 @@
 
 ## Configure self signed SSL certificate
 
+1. Go to the `nginx` folder:
+
 ```
 cd nginx/ssl
-sudo openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt
 ```
 
-In case you experience reading errors, add permission for key-file:
+1. Create a self-signed cert for `localhost` development environment.
 
 ```
-sudo chmod 644 localhost.key
+openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost-dev.key -out localhost-dev.crt
+# Make sure to add 'localhost' as the common-name (domain) when requested.
+```
+
+2. Create a self-signed cert for `skippings.com` production environment.
+
+```
+openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout skippings.com-prod.key -out skippings.com-prod.crt
+# Make sure to add 'skippings.com' as the common-name (domain) when requested.
 ```
