@@ -2,6 +2,7 @@
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_tls.h"
+#include <string.h>
 #include <sys/param.h>
 
 #define MAX_HTTP_RECV_BUFFER 512
@@ -131,17 +132,19 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 }
 
 void https_with_url(void) {
-  ESP_LOGI(HTTPTAG, "WOWIE");
+
   esp_http_client_config_t config = {
-      .url = "https://www.howsmyssl.com/a/check",
+      .url = "https://httpbin.org/get",
       .event_handler = _http_event_handler,
       .crt_bundle_attach = esp_crt_bundle_attach,
-      /*.cert_pem = cert,*/
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
+  esp_http_client_set_method(client, HTTP_METHOD_GET);
 
-  const char *testPost = "{\"value1\":5}";
-  esp_http_client_set_url(client, "https://httpbin.org/post");
+  const char *testPost =
+      "{\"temperature\":100,\"humidity\":0,\"timestamp\":\"0\"}";
+  esp_http_client_set_url(
+      client, "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5");
   esp_http_client_set_method(client, HTTP_METHOD_POST);
   esp_http_client_set_header(client, "Content-Type", "application/json");
   esp_http_client_set_post_field(client, testPost, strlen(testPost));
@@ -156,4 +159,15 @@ void https_with_url(void) {
     ESP_LOGE(HTTPTAG, "Error perform http request %s", esp_err_to_name(err));
   }
   esp_http_client_cleanup(client);
+
+  esp_tls_cfg_t tlsCfg = {
+      .crt_bundle_attach = esp_crt_bundle_attach,
+  };
+  struct esp_tls *tls =
+      esp_tls_conn_http_new("https://www.skippings.com", &tlsCfg);
+  if (tls != NULL) {
+    ESP_LOGI(HTTPTAG, "CON GOOD?????");
+  } else {
+    ESP_LOGE(HTTPTAG, "NO GOOD :/");
+  }
 }

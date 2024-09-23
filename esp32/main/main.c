@@ -5,7 +5,6 @@
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
 #include "https.h"
-#include "mqtt.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
 #include "wifi.h"
