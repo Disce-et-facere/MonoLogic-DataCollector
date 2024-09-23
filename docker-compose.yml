@@ -54,8 +54,8 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql-data:/var/lib/mysql
-    ports:
-      - "${DB_PORT}:${DB_PORT}"
+    expose: # to backend
+      - "${DB_PORT}"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
