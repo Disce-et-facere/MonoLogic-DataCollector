@@ -159,8 +159,8 @@
       </q-chip>
     </div>
 
-    <!--DEVICE-->
-    <div v-if="selectedDevices.length > 0 && isDeviceSelected" class="device-container">
+    <!--DEVICE  v-if="selectedDevices.length > 0 && isDeviceSelected" -->
+    <div class="device-container">
       <DeviceDataPanel
         :selected-devices="selectedDevices"
         :multipleDevices
@@ -202,7 +202,7 @@ interface Device {
   name: string;
   temperature: number;
   humidity: number;
-  timerstamp: string;
+  timestamp: string;
   latitude: number;
   longitude: number;
 }

@@ -1,12 +1,17 @@
 <template>
-  <div class="station-data">
-    <div class="station-container-header">
-      <div v-if="!multipleStations" class="latest-record">
-        Latest record: {{ stationData?.temperature }} °C
-      </div>
+  <div class="device-data">
+    <div class="device-container-header">
       <div class="close-btn">
-        <q-btn outline color="rgb(62, 230, 121)" label="CLOSE" @click="closeStationContainer"></q-btn>
+        <q-btn outline color="rgb(62, 230, 121)" label="CLOSE" @click="closeDeviceContainer"></q-btn>
       </div>
+      <q-toggle
+        v-if="multipleDevices"
+        v-model="displayType"
+        label="Display as:"
+        :labels="['Humidity', 'Temperature']"
+        class="toggle-display"
+        @change="updateChartOptions"
+      />
     </div>
     <div class="chart-container">
       <apexchart v-if="chartOptions" :options="chartOptions" :series="series" />
@@ -20,16 +25,21 @@ import ApexCharts from 'vue3-apexcharts';
 import axios from 'axios';
 import { ApexOptions } from 'apexcharts';
 
-interface Station {
-  key: string;
+interface Device {
+  id: number;
+  mac: string;
   name: string;
+  temperature: number;
+  humidity: number;
+  timestamp: string;
   latitude: number;
   longitude: number;
 }
 
 interface HistoryEntry {
-  date: string;
-  value: number;
+  timestamp: string;
+  temperature: number;
+  humidity: number;
 }
 
 interface ApiResponse {
@@ -38,267 +48,268 @@ interface ApiResponse {
 
 interface SeriesData {
   name: string;
+  type: 'line' | 'bar';
   data: Array<{ x: Date; y: number }>;
 }
 
 export default defineComponent({
-  name: 'StationDataPanel',
+  name: 'DeviceDataPanel',
   components: {
     apexchart: ApexCharts,
   },
   props: {
-    selectedStation: {
-      type: Object as PropType<Station | null>,
+    selectedDevice: {
+      type: Object as PropType<Device | null>,
       default: null,
     },
-    stationData: {
-      type: Object as PropType<{ temperature: string } | null>,
-      default: () => ({ temperature: 'N/A' }),
-    },
-    selectedStations: {
-      type: Array as PropType<Station[]>,
+    selectedDevices: {
+      type: Array as PropType<Device[]>,
       default: () => [],
     },
-    multipleStations: Boolean,
+    multipleDevices: Boolean,
   },
   emits: ['close'],
   methods: {
-    closeStationContainer() {
+    closeDeviceContainer() {
       this.$emit('close');
     }
   },
   setup(props) {
     const series = ref<SeriesData[]>([]);
     const chartOptions = ref<ApexOptions | null>(null);
-    const fetchStationHistory = async () => {
-      if (!props.selectedStation || !props.selectedStation.key) return;
+    const displayType = ref('temperature');
+
+    const fetchDeviceHistory = async () => {
+      if (!props.selectedDevice || !props.selectedDevice.mac) return;
 
       try {
         const response = await axios.get<ApiResponse>(
-          `https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/${props.selectedStation.key}/period/latest-day/data.json`
+          'http://localhost:8080/api/iot-device/${props.selectedDevice.mac}'
         );
 
-        const historyData = response.data.value.map(entry => ({
-          x: new Date(entry.date),
-          y: entry.value
+        const temperatureData = response.data.value.map(entry => ({
+          x: new Date(entry.timestamp),
+          y: entry.temperature,
         }));
 
-        series.value = [{
-          name: 'Temperature',
-          data: historyData
-        }];
+        const humidityData = response.data.value.map(entry => ({
+          x: new Date(entry.timestamp),
+          y: entry.humidity,
+        }));
+
+        series.value = [
+          {
+            name: 'Temperature',
+            type: 'line',
+            data: temperatureData,
+          },
+          {
+            name: 'Humidity',
+            type: 'bar',
+            data: humidityData,
+          },
+        ];
 
         chartOptions.value = {
           chart: {
-            type: 'line',
-            zoom: {
-              enabled: true
-            },
-            toolbar: {
-              show: false,
-            },
+            zoom: { enabled: true },
+            toolbar: { show: false },
             events: {
               mounted: (chart) => {
                 chart.updateOptions({
                   chart: {
-                    height: '100%'
-                  }
+                    height: '100%',
+                  },
                 });
-              }
-            }
-          },
-          colors: ['#3EE679'],
-          xaxis: {
-            axisBorder:{
-              color: '#3EE679',
+              },
             },
+          },
+          colors: ['#f73207', '#3EE679'],
+          xaxis: {
             type: 'datetime',
             title: {
               text: 'Time',
               style: {
-                color: '#3EE679'
-              }
+                color: '#3EE679',
+              },
             },
             labels: {
               style: {
-                colors: '#3EE679'
-              }
-            }
-          },
-          yaxis: {
-            title: {
-              text: 'Temperature (°C)',
-              style: {
-                color: '#3EE679'
-              }
+                colors: '#3EE679',
+              },
             },
-            labels: {
-              style: {
-                colors: '#3EE679'
-              }
-            }
           },
+          yaxis: [
+            {
+              title: {
+                text: 'Temperature (°C)',
+                style: {
+                  color: '#f73207',
+                },
+              },
+              labels: {
+                style: {
+                  colors: '#f73207',
+                },
+              },
+            },
+            {
+              opposite: true,
+              title: {
+                text: 'Humidity (%)',
+                style: {
+                  color: '#3EE679',
+                },
+              },
+              labels: {
+                style: {
+                  colors: '#3EE679',
+                },
+              },
+            },
+          ],
           title: {
-            text: props.selectedStation?.name || 'Station Temperature History',
+            text: props.selectedDevice?.name || 'Device Temperature History',
             align: 'center',
             style: {
               color: '#3EE679',
-              fontSize: '18px'
-            }
+              fontSize: '18px',
+            },
           },
           grid: {
-            borderColor: '#3EE679'
+            borderColor: '#3EE679',
           },
           tooltip: {
-            theme: 'dark'
+            theme: 'dark',
           },
           stroke: {
             curve: 'smooth',
             width: 2,
-            colors: ['#FF5733']
-          },
-        };
-      } catch (error) {
-        console.error('Error fetching station history data:', error);
-      }
-    };
-
-    const fetchMultipleStationHistory = async () => {
-      if (!props.selectedStations || props.selectedStations.length === 0) return;
-
-      try {
-        const allSeriesData: SeriesData[] = [];
-
-        for (const station of props.selectedStations) {
-          const response = await axios.get<ApiResponse>(
-            `https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/${station.key}/period/latest-day/data.json`
-          );
-
-          const historyData = response.data.value.map(entry => ({
-            x: new Date(entry.date),
-            y: entry.value
-          }));
-
-          allSeriesData.push({
-            name: station.name,
-            data: historyData
-          });
-        }
-
-        series.value = allSeriesData;
-
-        chartOptions.value = {
-          chart: {
-            type: 'line',
-            zoom: {
-              enabled: true
-            },
-            toolbar: {
-              show: false,
-            },
-            events: {
-              mounted: (chart) => {
-                chart.updateOptions({
-                  chart: {
-                    height: '100%'
-                  }
-                });
-              }
-            }
-          },
-          colors: ['#E63946', '#457B9D', '#FFB703', '#8A2BE2', '#2A9D8F'],
-          xaxis: {
-            axisBorder:{
-              color: '#3EE679',
-            },
-            type: 'datetime',
-            title: {
-              text: 'Time',
-              style: {
-                color: '#3EE679'
-              }
-            },
-            labels: {
-              style: {
-                colors: '#3EE679'
-              }
-            }
-          },
-          yaxis: {
-            title: {
-              text: 'Temperature (°C)',
-              style: {
-                color: '#3EE679'
-              }
-            },
-            labels: {
-              style: {
-                colors: '#3EE679'
-              }
-            }
-          },
-          title: {
-            text: 'Cross Reference',
-            align: 'center',
-            style: {
-              color: '#3EE679',
-              fontSize: '18px'
-            }
-          },
-          grid: {
-            borderColor: '#3EE679'
-          },
-          tooltip: {
-            theme: 'dark'
-          },
-          stroke: {
-            curve: 'smooth',
-            width: 2,
-            colors: ['#E63946', '#457B9D', '#FFB703', '#8A2BE2', '#2A9D8F']
           },
           legend: {
             labels: {
               colors: '#3EE679',  // Change the color of the legend text
             },
           },
+          plotOptions: {
+            bar: {
+              columnWidth: '5%',
+            }
+          },
         };
       } catch (error) {
         console.error('Error fetching station history data:', error);
       }
     };
 
+    const fetchMultipleDeviceHistory = async () => {
+      if (!props.selectedDevices || props.selectedDevices.length === 0) return;
+
+      try {
+        const temperatureSeriesData: SeriesData[] = [];
+        const humiditySeriesData: SeriesData[] = [];
+
+        for (const device of props.selectedDevices) {
+          const response = await axios.get<ApiResponse>(
+            `http://localhost:8080/api/iot-device/${device.mac}`
+          );
+
+          const temperatureData = response.data.value.map(entry => ({
+            x: new Date(entry.timestamp),
+            y: entry.temperature,
+          }));
+
+          const humidityData = response.data.value.map(entry => ({
+            x: new Date(entry.timestamp),
+            y: entry.humidity,
+          }));
+
+          temperatureSeriesData.push({
+            name: `${device.name} Temperature`,
+            type: 'line',
+            data: temperatureData,
+          });
+
+          humiditySeriesData.push({
+            name: `${device.name} Humidity`,
+            type: 'bar',
+            data: humidityData,
+          });
+        }
+
+        // Initially show both temperature and humidity for multiple devices
+        series.value = [...temperatureSeriesData, ...humiditySeriesData];
+
+        updateChartOptions(); // Initialize chart options based on the default display type
+      } catch (error) {
+        console.error('Error fetching multiple device history data:', error);
+      }
+    };
+
+    const updateChartOptions = () => {
+      const isHumidity = displayType.value === 'humidity';
+
+      // Filter the series based on the display type (humidity or temperature)
+      series.value = series.value.filter(s =>
+        isHumidity ? s.name.includes('Humidity') : s.name.includes('Temperature')
+      );
+
+      chartOptions.value = {
+        chart: {
+          zoom: { enabled: true },
+          toolbar: { show: false },
+        },
+        colors: isHumidity ? ['#3EE679'] : ['#f73207'],
+        xaxis: {
+          type: 'datetime',
+          title: {
+            text: 'Time',
+          },
+        },
+        yaxis: {
+          title: {
+            text: isHumidity ? 'Humidity (%)' : 'Temperature (°C)',
+          },
+        },
+        stroke: {
+          curve: 'smooth',
+        },
+      };
+    };
     onMounted(async () => {
       await nextTick();
-      if (props.multipleStations) {
-        fetchMultipleStationHistory();
+      if (props.multipleDevices) {
+        fetchMultipleDeviceHistory();
       } else {
-        fetchStationHistory();
+        fetchDeviceHistory();
       }
     });
 
-    watch(() => props.selectedStation, () => {
-      if(!props.multipleStations){
-        fetchStationHistory();
+    watch(() => props.selectedDevice, () => {
+      if(!props.multipleDevices){
+        fetchDeviceHistory();
       }
 
     });
 
-    watch(() => props.selectedStations, () => {
-      if (props.multipleStations) {
-        fetchMultipleStationHistory();
+    watch(() => props.selectedDevices, () => {
+      if (props.multipleDevices) {
+        fetchMultipleDeviceHistory();
       }
     });
 
     return {
       series,
       chartOptions,
+      updateChartOptions,
+      displayType,
     };
   }
 });
 </script>
 
 <style scoped>
-.station-data {
+.device-data {
   display:relative;
   display: flex;
   flex-direction: column;
@@ -317,7 +328,7 @@ export default defineComponent({
   overflow: hidden;
 }
 
-.station-container-header {
+.device-container-header {
   position: relative;
   display: flex;
   flex-direction: column;
