@@ -9,19 +9,19 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
-      # - frontend
+      - frontend
       - backend
 
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   expose: # to nginx (reverse-proxy)
-  #     - "${VUE_PORT}"
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    expose: # to nginx (reverse-proxy)
+      - "${VUE_PORT}"
 
   backend:
     container_name: backend
