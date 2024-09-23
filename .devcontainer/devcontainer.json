@@ -1,0 +1,53 @@
+{
+	"name": "System Integration IoT",
+	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"remoteUser": "root",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest",
+			"enableNonRootDocker": "true",
+			"moby": "true"
+		},
+		"ghcr.io/devcontainers/features/node:1.6.0": {}
+	},
+
+	// Mount .env file to container
+	"mounts": [
+		"source=${localWorkspaceFolder}/.env,target=/workspace/.env,type=bind"
+	],
+
+	// Run build script for building front & backend containers with docker compose
+	"postCreateCommand": ". /workspace/.env && docker-compose up",
+
+	// VSCode Tools
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"Vue.volar",
+				"Syler.sass-indented",
+				"esbenp.prettier-vscode",
+				"rvest.vs-code-prettier-eslint",
+				"dbaeumer.vscode-eslint",
+				"christian-kohler.path-intellisense",
+				"formulahendry.auto-rename-tag",
+				"bierner.markdown-preview-github-styles",
+				"vscjava.vscode-gradle",
+				"vscjava.vscode-java-pack",
+				"redhat.java",
+				"cweijan.vscode-mysql-client2",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	},
+
+	// Open Nginx HTTP & HTTPS ports
+	"forwardPorts": [
+		80, 
+		443
+	],
+
+	// Bind the container to the host network
+	"runArgs": [
+		"--network=host"
+	]
+}
