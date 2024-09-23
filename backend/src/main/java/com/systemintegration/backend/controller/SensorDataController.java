@@ -88,6 +88,13 @@ public class SensorDataController {
         if (isValid) {
             // Perform IP lookup to get the location data
             String clientIp = request.getHeader("X-Forwarded-For");
+
+            // Extract the last IP address if there are multiple
+            if (clientIp != null && clientIp.contains(",")) {
+                String[] ipArray = clientIp.split(",");
+                clientIp = ipArray[ipArray.length - 1].trim(); // Last IP
+            }
+
             Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
             // System.out.println("IP Location data: " + ipLocation);
 
