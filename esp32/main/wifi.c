@@ -121,3 +121,10 @@ bool wifi_init_sta(void) {
   }
   return bits & WIFI_CONNECTED_BIT;
 }
+
+void printMAC(void) {
+  uint8_t mac[6];
+  esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+  ESP_LOGI(WIFITAG, "MAC address: %0x2:%0x2:%0x2:%0x2:%0x2:%0x2", mac[0],
+           mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
