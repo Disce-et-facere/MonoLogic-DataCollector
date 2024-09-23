@@ -2,10 +2,10 @@
   <div class="station-data">
     <div class="station-container-header">
       <div v-if="!multipleStations" class="latest-record">
-        Latest record: {{ stationData?.temperature }} °C
+        Latest record:
       </div>
       <div class="close-btn">
-        <q-btn outline color="rgb(62, 230, 121)" label="CLOSE" @click="closeContainer"></q-btn>
+        <q-btn outline color="rgb(62, 230, 121)" label="CLOSE" @click="closeStationContainer"></q-btn>
       </div>
     </div>
     <div class="chart-container">
@@ -47,14 +47,6 @@ export default defineComponent({
     apexchart: ApexCharts,
   },
   props: {
-    selectedStation: {
-      type: Object as PropType<Station | null>,
-      default: null,
-    },
-    stationData: {
-      type: Object as PropType<{ temperature: string } | null>,
-      default: () => ({ temperature: 'N/A' }),
-    },
     selectedStations: {
       type: Array as PropType<Station[]>,
       default: () => [],
@@ -63,7 +55,7 @@ export default defineComponent({
   },
   emits: ['close'],
   methods: {
-    closeContainer() {
+    closeStationContainer() {
       this.$emit('close');
     }
   },
@@ -71,11 +63,11 @@ export default defineComponent({
     const series = ref<SeriesData[]>([]);
     const chartOptions = ref<ApexOptions | null>(null);
     const fetchStationHistory = async () => {
-      if (!props.selectedStation || !props.selectedStation.key) return;
+      if (!props.selectedStations.length || !props.selectedStations[0].key) return;
 
       try {
         const response = await axios.get<ApiResponse>(
-          `https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/${props.selectedStation.key}/period/latest-day/data.json`
+          `https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/${props.selectedStations[0].key}/period/latest-day/data.json`
         );
 
         const historyData = response.data.value.map(entry => ({
@@ -139,7 +131,7 @@ export default defineComponent({
             }
           },
           title: {
-            text: props.selectedStation?.name || 'Station Temperature History',
+            text: props.selectedStations[0]?.name || 'Station Temperature History',
             align: 'center',
             style: {
               color: '#3EE679',
@@ -276,13 +268,6 @@ export default defineComponent({
       }
     });
 
-    watch(() => props.selectedStation, () => {
-      if(!props.multipleStations){
-        fetchStationHistory();
-      }
-
-    });
-
     watch(() => props.selectedStations, () => {
       if (props.multipleStations) {
         fetchMultipleStationHistory();
@@ -370,18 +355,17 @@ export default defineComponent({
   height: 100% !important;
 }
 
-/* Responsive layout for smaller screens */
 @media (max-width: 600px) {
   .station-data {
-    max-height: 100%; /* Adjust for smaller screens */
+    max-height: 100%;
   }
 
   .station-container-header {
-    height: 60px; /* Reduce header height */
+    height: 60px;
   }
 
   .chart-container {
-    height: calc(100% - 60px); /* Adjust chart height accordingly */
+    height: calc(100% - 60px);
   }
 
   .latest-record {
