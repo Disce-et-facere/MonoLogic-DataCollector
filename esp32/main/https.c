@@ -139,6 +139,13 @@ void https_with_url(void) {
       /*.cert_pem = cert,*/
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
+
+  const char *testPost = "{\"value1\":5}";
+  esp_http_client_set_url(client, "https://httpbin.org/post");
+  esp_http_client_set_method(client, HTTP_METHOD_POST);
+  esp_http_client_set_header(client, "Content-Type", "application/json");
+  esp_http_client_set_post_field(client, testPost, strlen(testPost));
+
   esp_err_t err = esp_http_client_perform(client);
 
   if (err == ESP_OK) {
