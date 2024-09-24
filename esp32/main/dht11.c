@@ -116,6 +116,6 @@ void dhtTask(void *pvParameter) {
       ESP_LOGE(DHTTAG, "Dht checksum error");
       break;
     }
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskDelay((dhtTimeBetweenRead * 1000) / portTICK_PERIOD_MS);
   }
 }

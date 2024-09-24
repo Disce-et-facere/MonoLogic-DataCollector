@@ -3,6 +3,8 @@
 
 #include "esp_err.h"
 
+#define updateTime 60
+
 void httpsTask(void *pvParameter);
 esp_err_t httpsAuthenticate(void);
 

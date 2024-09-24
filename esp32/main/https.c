@@ -168,7 +168,7 @@ void httpsTask(void *pvParameter) {
         }
         esp_http_client_cleanup(client);
       }
-      vTaskDelay(10000 / portTICK_PERIOD_MS);
+      vTaskDelay((updateTime * 1000) / portTICK_PERIOD_MS);
     }
   }
 }
