@@ -10,7 +10,7 @@
 
 
 const { configure } = require('quasar/wrappers');
-
+const { mergeConfig } = require('vite');
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -67,7 +67,19 @@ module.exports = configure(function (/* ctx */) {
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf) {
+        viteConf.server = mergeConfig(viteConf.server, {
+          proxy: {
+            '/api': {
+              target: 'http://localhost:5000',
+              changeOrigin: true,
+              ws: true, // Enable WebSocket proxying
+              secure: false,
+            },
+          },
+        })
+      },
+
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -84,8 +96,10 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      port: 8080,
-      // https: true
+      hmr: {
+        port: 443,
+      },
+      // https: true,
       open: true // opens browser window automatically
     },
 

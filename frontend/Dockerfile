@@ -16,8 +16,8 @@ RUN npm install
 # # Add the rest of the code
 COPY . .
 
-# Make port 8080 available
-EXPOSE 8080
+# Make port available
+EXPOSE 9000
 
 # Serve the app
 CMD ["quasar", "dev"]

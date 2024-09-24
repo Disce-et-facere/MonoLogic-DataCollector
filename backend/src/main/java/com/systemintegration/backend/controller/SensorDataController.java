@@ -4,7 +4,7 @@ import com.systemintegration.backend.dto.SensorDataResponseDTO;
 import com.systemintegration.backend.model.SensorData;
 import com.systemintegration.backend.service.SensorDataService;
 import com.systemintegration.backend.service.IoTDeviceService;
-import com.systemintegration.backend.service.IpDataService;
+// import com.systemintegration.backend.service.IpDataService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
+// import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sensor-data")
@@ -26,7 +26,7 @@ public class SensorDataController {
     private IoTDeviceService deviceService;
 
     @Autowired
-    private IpDataService ipDataService;
+    // private IpDataService ipDataService;
 
     @GetMapping
     public ResponseEntity<List<SensorDataResponseDTO>> getAllSensorData() {
@@ -87,18 +87,18 @@ public class SensorDataController {
 
         if (isValid) {
             // Perform IP lookup to get the location data
-            String clientIp = request.getHeader("X-Forwarded-For");
-            Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
+            // String clientIp = request.getHeader("X-Forwarded-For");
+            // Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
             // System.out.println("IP Location data: " + ipLocation);
 
             // Extract latitude and longitude from the IP lookup response
-            Double latitude = (Double) ipLocation.get("latitude");
-            Double longitude = (Double) ipLocation.get("longitude");
+            // Double latitude = (Double) ipLocation.get("latitude");
+            // Double longitude = (Double) ipLocation.get("longitude");
 
             // Save sensor data to the database
             sensorData.setMac(mac);
-            sensorData.setLatitude(latitude); // Set the latitude
-            sensorData.setLongitude(longitude); // Set the longitude
+            // sensorData.setLatitude(latitude); // Set the latitude
+            // sensorData.setLongitude(longitude); // Set the longitude
 
             sensorDataService.saveSensorData(sensorData);
             return ResponseEntity.ok("Sensor data saved successfully");

@@ -1,15 +1,17 @@
 <template>
   <div class="page-container">
-
     <LoadingScreen v-if="loading" />
     <div ref="globeContainer" class="globe-container" v-show="!loading"></div>
 
     <div class="controls-container">
-
       <!--DEVICE-->
       <div class="select-devices-btn">
         <q-btn-group>
-          <q-btn color="primary" label="select iot devices to" @click="closeDeviceContainer">
+          <q-btn
+            color="primary"
+            label="select iot devices to"
+            @click="closeDeviceContainer"
+          >
             <q-menu anchor="bottom left" class="bg-transparent">
               <q-input
                 v-model="deviceSearchText"
@@ -27,13 +29,16 @@
                   clickable
                   @click="selectDevice(device)"
                 >
-
-            <q-item-label>{{ device.name }}</q-item-label>
-          </q-item>
+                  <q-item-label>{{ device.name }}</q-item-label>
+                </q-item>
               </q-list>
             </q-menu>
           </q-btn>
-          <q-btn :label="selectedDevices.length > 1 ? 'X-REF' : 'Show'" color="secondary" @click="handleSelectedDevices"></q-btn>
+          <q-btn
+            :label="selectedDevices.length > 1 ? 'X-REF' : 'Show'"
+            color="secondary"
+            @click="handleSelectedDevices"
+          ></q-btn>
         </q-btn-group>
       </div>
 
@@ -42,69 +47,81 @@
         <q-btn color="secondary" label="Add device" @click="openAddDeviceMenu">
           <q-menu dark anchor="bottom left" class="bg-transparent no-shadow">
             <div class="add-btn-form-container">
-              <q-form
-              class="q-gutter-md"
-              >
-              <q-input
-                v-model="nameValue"
-                outlined
-                class="custom-input"
-                color="secondary"
-                label-color="positive"
-                border-color="secondary"
-                label="Device Name"
-                lazy-rules
-              />
+              <q-form class="q-gutter-md">
+                <q-input
+                  v-model="nameValue"
+                  outlined
+                  class="custom-input"
+                  color="secondary"
+                  label-color="positive"
+                  border-color="secondary"
+                  label="Device Name"
+                  lazy-rules
+                />
 
-              <q-input
-                v-model="macValue"
-                outlined
-                class="custom-input"
-                color="secondary"
-                label-color="positive"
-                label="Device Mac"
-                lazy-rules
-              />
+                <q-input
+                  v-model="macValue"
+                  outlined
+                  class="custom-input"
+                  color="secondary"
+                  label-color="positive"
+                  label="Device Mac"
+                  lazy-rules
+                />
 
-              <div class="submit-btn">
-                <q-btn label="Add" type="submit" color="secondary" @click="addDevice"></q-btn>
-              </div>
+                <div class="submit-btn">
+                  <q-btn
+                    label="Add"
+                    type="submit"
+                    color="secondary"
+                    @click="addDevice"
+                  ></q-btn>
+                </div>
               </q-form>
             </div>
-        </q-menu>
+          </q-menu>
         </q-btn>
 
-        <q-btn color="accent" label="Delete device" @click="openDeleteDeviceMenu">
+        <q-btn
+          color="accent"
+          label="Delete device"
+          @click="openDeleteDeviceMenu"
+        >
           <q-menu dark anchor="bottom left" class="bg-transparent no-shadow">
             <div class="add-btn-form-container">
-              <q-form
-              class="q-gutter-md"
-              >
+              <q-form class="q-gutter-md">
+                <q-input
+                  v-model="macValue"
+                  outlined
+                  class="custom-input"
+                  color="accent"
+                  label-color="negative"
+                  label="Device Mac"
+                  lazy-rules
+                />
 
-              <q-input
-                v-model="macValue"
-                outlined
-                class="custom-input"
-                color="accent"
-                label-color="negative"
-                label="Device Mac"
-                lazy-rules
-              />
-
-              <div class="submit-btn">
-                <q-btn label="DELETE" type="submit" color="accent" @click="deleteDevice"></q-btn>
-              </div>
+                <div class="submit-btn">
+                  <q-btn
+                    label="DELETE"
+                    type="submit"
+                    color="accent"
+                    @click="deleteDevice"
+                  ></q-btn>
+                </div>
               </q-form>
             </div>
-        </q-menu>
+          </q-menu>
         </q-btn>
       </div>
-
 
       <!--STATION-->
       <div class="select-stations-btn" ref="stationSearchDropdown">
         <q-btn-group>
-          <q-btn color="primary" label="select stations to" @click="closeStationContainer">
+          <q-btn
+            color="primary"
+            label="select stations to"
+            @click="closeStationContainer"
+          >
             <q-menu anchor="bottom left" class="bg-transparent">
               <q-input
                 v-model="stationSearchText"
@@ -122,32 +139,41 @@
                   clickable
                   @click="selectStation(station)"
                 >
-
-            <q-item-label>{{ station.name }}</q-item-label>
-          </q-item>
+                  <q-item-label>{{ station.name }}</q-item-label>
+                </q-item>
               </q-list>
             </q-menu>
           </q-btn>
-          <q-btn :label="selectedStations.length > 1 ? 'X-REF' : 'Show'" color="secondary" @click="handleSelectedStations"></q-btn>
+          <q-btn
+            :label="selectedStations.length > 1 ? 'X-REF' : 'Show'"
+            color="secondary"
+            @click="handleSelectedStations"
+          ></q-btn>
         </q-btn-group>
       </div>
     </div>
 
     <!--DEVICE-->
-    <div v-if="selectedDevices.length > 0 && !multipleDevices" class="q-mt-sm devices-tags">
-        <q-chip
-          v-for="device in selectedDevices"
-          :key="device.mac"
-          removable
-          @remove="removeDevice(device.mac)"
-          class="device-chip"
-        >
-          {{ device.name }}
-        </q-chip>
-      </div>
+    <div
+      v-if="selectedDevices.length > 0 && !multipleDevices"
+      class="q-mt-sm devices-tags"
+    >
+      <q-chip
+        v-for="device in selectedDevices"
+        :key="device.mac"
+        removable
+        @remove="removeDevice(device.mac)"
+        class="device-chip"
+      >
+        {{ device.name }}
+      </q-chip>
+    </div>
 
     <!--STATION-->
-    <div v-if="selectedStations.length > 0 && !multipleStations" class="q-mt-sm station-tags">
+    <div
+      v-if="selectedStations.length > 0 && !multipleStations"
+      class="q-mt-sm station-tags"
+    >
       <q-chip
         v-for="station in selectedStations"
         :key="station.key"
@@ -160,7 +186,10 @@
     </div>
 
     <!--DEVICE  v-if="selectedDevices.length > 0 && isDeviceSelected" -->
-    <div class="device-container">
+    <div
+      v-if="selectedDevices.length > 0 && isDeviceSelected"
+      class="device-container"
+    >
       <DeviceDataPanel
         :selected-devices="selectedDevices"
         :multipleDevices
@@ -169,19 +198,27 @@
     </div>
 
     <!--STATION-->
-    <div v-if="selectedStations.length > 0 && isStationSelected" class="station-container">
+    <div
+      v-if="selectedStations.length > 0 && isStationSelected"
+      class="station-container"
+    >
       <StationDataPanel
         :selected-stations="selectedStations"
         :multipleStations
         @close="closeStationContainer"
       />
     </div>
-
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import {
+  defineComponent,
+  ref,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+} from 'vue';
 import Globe from 'globe.gl';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import StationDataPanel from '../components/StationDataPanel.vue';
@@ -239,8 +276,11 @@ export default defineComponent({
 
     // Station sections -->
     const fetchStations = async () => {
+      console.log('API - Fetching stations...');
       try {
-        const response = await axios.get('https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json');
+        const response = await axios.get(
+          'https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json'
+        );
         stations.value = response.data.station;
         updateGlobePoints();
       } catch (error) {
@@ -249,56 +289,69 @@ export default defineComponent({
     };
 
     const filteredStations = computed(() => {
-      return stations.value.filter(station =>
-        station.name.toLowerCase().includes(stationSearchText.value.toLowerCase())
+      return stations.value.filter((station) =>
+        station.name
+          .toLowerCase()
+          .includes(stationSearchText.value.toLowerCase())
       );
     });
 
     const selectStation = (station: Station) => {
-      if (!selectedStations.value.find(s => s.key === station.key)) {
+      if (!selectedStations.value.find((s) => s.key === station.key)) {
         selectedStations.value.push(station);
         updateGlobePoints();
       }
     };
 
     const removeStation = (stationKey: string) => {
-      selectedStations.value = selectedStations.value.filter(s => s.key !== stationKey);
+      selectedStations.value = selectedStations.value.filter(
+        (s) => s.key !== stationKey
+      );
     };
 
     const handleSelectedStations = () => {
       if (selectedStations.value && selectedStations.value.length > 1) {
         displayMultipleStations();
       } else {
-       displaySingleStation(selectedStations.value[0]);
+        displaySingleStation(selectedStations.value[0]);
       }
     };
 
     const displaySingleStation = (station: Station) => {
       isStationSelected.value = true;
       if (globeInstance.value) {
-        globeInstance.value.pointOfView({ lat: station.latitude, lng: station.longitude, altitude: 0.1 }, 2000);
+        globeInstance.value.pointOfView(
+          { lat: station.latitude, lng: station.longitude, altitude: 0.1 },
+          2000
+        );
         updateGlobePoints();
-      }else{
+      } else {
         console.error('Globe instance is not initialized.');
       }
-    }
+    };
 
     const displayMultipleStations = () => {
       multipleStations.value = true;
       isStationSelected.value = true;
       stationSearchText.value = '';
-      if(globeInstance.value){
-        globeInstance.value.pointOfView({ lat: 62.1282, lng: 13.6435, altitude: 0.3 }, 2000);
+      if (globeInstance.value) {
+        globeInstance.value.pointOfView(
+          { lat: 62.1282, lng: 13.6435, altitude: 0.3 },
+          2000
+        );
       }
-    }
+    };
 
     const closeStationContainer = () => {
       selectedStations.value = [];
       multipleStations.value = false;
       updateGlobePoints();
-      if(isStationSelected.value) {
-        if(globeInstance.value){
-          globeInstance.value.pointOfView({ lat: 62.1282, lng: 13.6435, altitude: 0.4 }, 2000);
+      if (isStationSelected.value) {
+        if (globeInstance.value) {
+          globeInstance.value.pointOfView(
+            { lat: 62.1282, lng: 13.6435, altitude: 0.4 },
+            2000
+          );
         }
       }
       isStationSelected.value = false;
@@ -308,7 +361,7 @@ export default defineComponent({
     // device section -->
     const fetchDevices = async () => {
       try {
-        const response = await axios.get('localhost:8080/api/sensor-data');
+        const response = await axios.get('/api/sensor-data');
         devices.value = response.data.device;
         updateGlobePoints();
       } catch (error) {
@@ -317,56 +370,69 @@ export default defineComponent({
     };
 
     const filteredDevices = computed(() => {
-      return devices.value.filter(devices =>
-        devices.name.toLowerCase().includes(deviceSearchText.value.toLowerCase())
+      return devices.value.filter((devices) =>
+        devices.name
+          .toLowerCase()
+          .includes(deviceSearchText.value.toLowerCase())
       );
     });
 
     const selectDevice = (device: Device) => {
-      if (!selectedDevices.value.find(s => s.mac === device.mac)) {
+      if (!selectedDevices.value.find((s) => s.mac === device.mac)) {
         selectedDevices.value.push(device);
         updateGlobePoints();
       }
     };
 
     const removeDevice = (stationKey: string) => {
-      selectedStations.value = selectedStations.value.filter(s => s.key !== stationKey);
+      selectedStations.value = selectedStations.value.filter(
+        (s) => s.key !== stationKey
+      );
     };
 
     const handleSelectedDevices = () => {
       if (selectedStations.value && selectedStations.value.length > 1) {
         displayMultipleDevices();
       } else {
-       displaySingleDevice(selectedStations.value[0]);
+        displaySingleDevice(selectedStations.value[0]);
       }
     };
 
     const displaySingleDevice = (station: Station) => {
       isStationSelected.value = true;
       if (globeInstance.value) {
-        globeInstance.value.pointOfView({ lat: station.latitude, lng: station.longitude, altitude: 0.1 }, 2000);
+        globeInstance.value.pointOfView(
+          { lat: station.latitude, lng: station.longitude, altitude: 0.1 },
+          2000
+        );
         updateGlobePoints();
-      }else{
+      } else {
         console.error('Globe instance is not initialized.');
       }
-    }
+    };
 
     const displayMultipleDevices = () => {
       multipleStations.value = true;
       isStationSelected.value = true;
       stationSearchText.value = '';
-      if(globeInstance.value){
-        globeInstance.value.pointOfView({ lat: 62.1282, lng: 13.6435, altitude: 0.3 }, 2000);
+      if (globeInstance.value) {
+        globeInstance.value.pointOfView(
+          { lat: 62.1282, lng: 13.6435, altitude: 0.3 },
+          2000
+        );
       }
-    }
+    };
 
     const closeDeviceContainer = () => {
       selectedDevices.value = [];
       multipleDevices.value = false;
       updateGlobePoints();
-      if(isDeviceSelected.value) {
-        if(globeInstance.value){
-          globeInstance.value.pointOfView({ lat: 62.1282, lng: 13.6435, altitude: 0.4 }, 2000);
+      if (isDeviceSelected.value) {
+        if (globeInstance.value) {
+          globeInstance.value.pointOfView(
+            { lat: 62.1282, lng: 13.6435, altitude: 0.4 },
+            2000
+          );
         }
       }
       isDeviceSelected.value = false;
@@ -389,15 +455,16 @@ export default defineComponent({
       const deviceReg = {
         mac: macValue.value,
         name: nameValue.value,
-      }
-      axios.post('http://localhost:8080/api/iot-device', deviceReg)
-        .then(response => {
+      };
+      axios
+        .post('/api/iot-device', deviceReg)
+        .then((response) => {
           console.log('Device added successfully:', response.data);
           nameValue.value = '';
           macValue.value = '';
           addDeviceMenu.value = false;
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('There was an error adding the device:', error);
         });
     }
@@ -405,13 +472,14 @@ export default defineComponent({
     function deleteDevice() {
       const macAddress = macValue.value;
 
-      axios.delete(`http://localhost:8080/api/iot-device/${macAddress}`)
-        .then(response => {
+      axios
+        .delete(`/api/iot-device/${macAddress}`)
+        .then((response) => {
           console.log('Device deleted successfully:', response.data);
           macValue.value = '';
           deleteDeviceMenu.value = false;
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('There was an error deleting the device:', error);
         });
     }
@@ -425,40 +493,52 @@ export default defineComponent({
     };
 
     const updateGlobePoints = () => {
-  if (globeInstance.value) {
-    const pointsData: Array<{ lat: number; lng: number; size: number; radius: number; color: string; label: string; name: string }> = [];
+      if (globeInstance.value) {
+        const pointsData: Array<{
+          lat: number;
+          lng: number;
+          size: number;
+          radius: number;
+          color: string;
+          label: string;
+          name: string;
+        }> = [];
 
-    // Adds stations
-    stations.value.forEach(station => {
-      const isInSelectedStations = selectedStations.value?.some(selected => selected.key === station.key);
-      pointsData.push({
-        lat: station.latitude,
-        lng: station.longitude,
-        size: 0,
-        radius: 0.05,
-        color: isInSelectedStations ? 'green' : 'red',
-        label: station.name,
-        name: station.name
-      });
-    });
+        // Adds stations
+        stations.value.forEach((station) => {
+          const isInSelectedStations = selectedStations.value?.some(
+            (selected) => selected.key === station.key
+          );
+          pointsData.push({
+            lat: station.latitude,
+            lng: station.longitude,
+            size: 0,
+            radius: 0.05,
+            color: isInSelectedStations ? 'green' : 'red',
+            label: station.name,
+            name: station.name,
+          });
+        });
 
-    // Adds devices
-    devices.value.forEach(device => {
-      const isInSelectedDevices = selectedDevices.value?.some(selected => selected.mac === device.mac);
-      pointsData.push({
-        lat: device.latitude,
-        lng: device.longitude,
-        size: 0,
-        radius: 0.05,
-        color: isInSelectedDevices ? 'green' : 'blue',
-        label: device.name,
-        name: device.name
-      });
-    });
+        // Adds devices
+        devices.value.forEach((device) => {
+          const isInSelectedDevices = selectedDevices.value?.some(
+            (selected) => selected.mac === device.mac
+          );
+          pointsData.push({
+            lat: device.latitude,
+            lng: device.longitude,
+            size: 0,
+            radius: 0.05,
+            color: isInSelectedDevices ? 'green' : 'blue',
+            label: device.name,
+            name: device.name,
+          });
+        });
 
-    globeInstance.value.pointsData(pointsData);
-  }
-};
+        globeInstance.value.pointsData(pointsData);
+      }
+    };
 
     onMounted(async () => {
       if (globeContainer.value) {
@@ -470,7 +550,9 @@ export default defineComponent({
             img.onerror = () => reject(new Error('Failed to load image'));
           });
 
-          const globe = Globe({ waitForGlobeReady: true, animateIn: true })(globeContainer.value)
+          const globe = Globe({ waitForGlobeReady: true, animateIn: true })(
+            globeContainer.value
+          )
             .globeImageUrl(earthTexture)
             .pointAltitude('size')
             .pointColor('color')
@@ -486,7 +568,9 @@ export default defineComponent({
 
           globe.onPointClick((point: { name?: string }) => {
             if (point?.name) {
-              const clickedStation = stations.value.find(station => station.name === point.name);
+              const clickedStation = stations.value.find(
+                (station) => station.name === point.name
+              );
               if (clickedStation) {
                 selectStation(clickedStation);
                 displaySingleStation(selectedStations.value[0]);
@@ -545,8 +629,6 @@ export default defineComponent({
   },
 });
 </script>
-
-
 
 <style scoped>
 .page-container {
@@ -622,7 +704,7 @@ export default defineComponent({
   position: relative;
 }
 
-.station-chip{
+.station-chip {
   background-color: rgba(62, 230, 121, 0.7);
   color: white;
 }
@@ -679,7 +761,7 @@ export default defineComponent({
   position: relative;
 }
 
-.device-chip{
+.device-chip {
   background-color: rgba(62, 230, 121, 0.7);
   color: white;
 }
@@ -697,7 +779,7 @@ export default defineComponent({
 
 /* ADD/DELETE DEVICE */
 .add-delete-btn {
-  display:flex;
+  display: flex;
   flex-grow: 1;
   color: rgb(62, 230, 121);
   justify-content: center;
@@ -728,15 +810,15 @@ export default defineComponent({
 }
 
 .add-btn-form-container {
-  padding:20px;
+  padding: 20px;
   background-color: rgba(12, 25, 38, 0.9);
 }
 
-.custom-input{
+.custom-input {
   background-color: rgba(8, 34, 61, 0.9);
-  border-radius:5px;
-  -webkit-box-shadow: 0px 3px 5px 1px rgba(0,0,0,1);
-  -moz-box-shadow: 0px 3px 5px 1px rgba(0,0,0,1);
-  box-shadow: 0px 3px 5px 1px rgba(0,0,0,1);
+  border-radius: 5px;
+  -webkit-box-shadow: 0px 3px 5px 1px rgba(0, 0, 0, 1);
+  -moz-box-shadow: 0px 3px 5px 1px rgba(0, 0, 0, 1);
+  box-shadow: 0px 3px 5px 1px rgba(0, 0, 0, 1);
 }
 </style>

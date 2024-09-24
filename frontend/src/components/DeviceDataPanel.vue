@@ -2,7 +2,12 @@
   <div class="device-data">
     <div class="device-container-header">
       <div class="close-btn">
-        <q-btn outline color="rgb(62, 230, 121)" label="CLOSE" @click="closeDeviceContainer"></q-btn>
+        <q-btn
+          outline
+          color="rgb(62, 230, 121)"
+          label="CLOSE"
+          @click="closeDeviceContainer"
+        ></q-btn>
       </div>
       <q-toggle
         v-if="multipleDevices"
@@ -20,7 +25,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch, nextTick, PropType } from 'vue';
+import {
+  defineComponent,
+  onMounted,
+  ref,
+  watch,
+  nextTick,
+  PropType,
+} from 'vue';
 import ApexCharts from 'vue3-apexcharts';
 import axios from 'axios';
 import { ApexOptions } from 'apexcharts';
@@ -72,7 +84,7 @@ export default defineComponent({
   methods: {
     closeDeviceContainer() {
       this.$emit('close');
-    }
+    },
   },
   setup(props) {
     const series = ref<SeriesData[]>([]);
@@ -84,15 +96,15 @@ export default defineComponent({
 
       try {
         const response = await axios.get<ApiResponse>(
-          'http://localhost:8080/api/iot-device/${props.selectedDevice.mac}'
+          '/api/iot-device/${props.selectedDevice.mac}'
         );
 
-        const temperatureData = response.data.value.map(entry => ({
+        const temperatureData = response.data.value.map((entry) => ({
           x: new Date(entry.timestamp),
           y: entry.temperature,
         }));
 
-        const humidityData = response.data.value.map(entry => ({
+        const humidityData = response.data.value.map((entry) => ({
           x: new Date(entry.timestamp),
           y: entry.humidity,
         }));
@@ -188,13 +200,13 @@ export default defineComponent({
           },
           legend: {
             labels: {
-              colors: '#3EE679',  // Change the color of the legend text
+              colors: '#3EE679', // Change the color of the legend text
             },
           },
           plotOptions: {
             bar: {
               columnWidth: '5%',
-            }
+            },
           },
         };
       } catch (error) {
@@ -211,15 +223,15 @@ export default defineComponent({
 
         for (const device of props.selectedDevices) {
           const response = await axios.get<ApiResponse>(
-            `http://localhost:8080/api/iot-device/${device.mac}`
+            `/api/iot-device/${device.mac}`
           );
 
-          const temperatureData = response.data.value.map(entry => ({
+          const temperatureData = response.data.value.map((entry) => ({
             x: new Date(entry.timestamp),
             y: entry.temperature,
           }));
 
-          const humidityData = response.data.value.map(entry => ({
+          const humidityData = response.data.value.map((entry) => ({
             x: new Date(entry.timestamp),
             y: entry.humidity,
           }));
@@ -250,8 +262,10 @@ export default defineComponent({
       const isHumidity = displayType.value === 'humidity';
 
       // Filter the series based on the display type (humidity or temperature)
-      series.value = series.value.filter(s =>
-        isHumidity ? s.name.includes('Humidity') : s.name.includes('Temperature')
+      series.value = series.value.filter((s) =>
+        isHumidity
+          ? s.name.includes('Humidity')
+          : s.name.includes('Temperature')
       );
 
       chartOptions.value = {
@@ -285,18 +299,23 @@ export default defineComponent({
       }
     });
 
-    watch(() => props.selectedDevice, () => {
-      if(!props.multipleDevices){
-        fetchDeviceHistory();
+    watch(
+      () => props.selectedDevice,
+      () => {
+        if (!props.multipleDevices) {
+          fetchDeviceHistory();
+        }
       }
+    );
 
-    });
-
-    watch(() => props.selectedDevices, () => {
-      if (props.multipleDevices) {
-        fetchMultipleDeviceHistory();
+    watch(
+      () => props.selectedDevices,
+      () => {
+        if (props.multipleDevices) {
+          fetchMultipleDeviceHistory();
+        }
       }
-    });
+    );
 
     return {
       series,
@@ -304,13 +323,13 @@ export default defineComponent({
       updateChartOptions,
       displayType,
     };
-  }
+  },
 });
 </script>
 
 <style scoped>
 .device-data {
-  display:relative;
+  display: relative;
   display: flex;
   flex-direction: column;
   width: 90vw;
@@ -396,11 +415,11 @@ export default defineComponent({
   }
 
   .latest-record {
-    top:5px;
+    top: 5px;
   }
 
   .close-btn {
-    top:0px;
+    top: 0px;
   }
 }
 </style>
