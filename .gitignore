@@ -7,3 +7,7 @@
 # Deployment SSH keys
 id_rsa
 id_rsa.pub
+
+# clangD
+.cache/
+compile_commands.json
