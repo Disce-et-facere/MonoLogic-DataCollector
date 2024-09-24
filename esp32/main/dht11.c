@@ -12,6 +12,9 @@
 static const char *DHTTAG = "DHT";
 
 dht_err_t dhtInit(dht_t *dht) {
+  if (dht == NULL) {
+    return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+  }
   dht->gpio = GPIO_NUM_7;
   dht->lastRead = -2000000;
   return ESP_OK;

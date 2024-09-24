@@ -66,7 +66,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
   }
 }
 
-bool wifi_init_sta(void) {
+bool wifiInitStation(void) {
   s_wifi_event_group = xEventGroupCreate();
   ESP_ERROR_CHECK(esp_netif_init());
   ESP_ERROR_CHECK(esp_event_loop_create_default());

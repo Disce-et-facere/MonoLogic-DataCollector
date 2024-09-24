@@ -120,7 +120,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 
 void httpsTask(void *pvParameter) {
 #define buffSize 128
-  if (wifi_init_sta()) {
+  if (wifiInitStation()) {
 
     dht_t *dht = (dht_t *)pvParameter;
 
