@@ -1,13 +1,13 @@
-#include "dht11.h"
 #include "esp_interface.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
-#include "https.h"
+#include "include/dht11.h"
+#include "include/https.h"
+#include "include/wifi.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
-#include "wifi.h"
 #include <stdlib.h>
 
 void app_main(void) {

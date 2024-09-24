@@ -1,14 +1,14 @@
-#include "https.h"
+#include "include/https.h"
 /*#include "esp_crt_bundle.h"*/
-#include "dht11.h"
 #include "esp_err.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_tls.h"
 #include "esp_wifi.h"
 #include "freertos/idf_additions.h"
+#include "include/dht11.h"
+#include "include/wifi.h"
 #include "portmacro.h"
-#include "wifi.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
