@@ -33,7 +33,7 @@ void wakeDHT(dht_t *dht) {
   ESP_LOGI(DHTTAG, "Waking DHT");
   gpio_set_direction(dht->gpio, GPIO_MODE_OUTPUT);
   gpio_set_level(dht->gpio, 0);
-  ets_delay_us(20 * 10000);
+  ets_delay_us(20 * 1000);
   gpio_set_level(dht->gpio, 1);
   ets_delay_us(40);
   gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
