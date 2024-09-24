@@ -76,6 +76,9 @@ dht_err_t dhtRead(dht_t *dht) {
   if (incomingData[4] !=
       (incomingData[0] + incomingData[1] + incomingData[2] + incomingData[3])) {
     return DHT_CHECKSUM_FAIL;
+  } else if ((incomingData[0] + incomingData[1] + incomingData[2] +
+              incomingData[3] + incomingData[4]) == 0) {
+    return DHT_FAIL;
   }
 
   dht->temperature.integer = (uint8_t)incomingData[2];
