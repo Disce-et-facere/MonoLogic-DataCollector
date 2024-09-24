@@ -160,13 +160,12 @@ void httpsTask(void *pvParameter) {
                    esp_http_client_get_status_code(client),
                    esp_http_client_get_content_length(client));
           if (esp_http_client_get_status_code(client) == 401) {
-            httpsAuthenticate();
+            (void)httpsAuthenticate();
           }
         } else {
           ESP_LOGE(HTTPTAG, "Error perform http request %s",
                    esp_err_to_name(err));
         }
-
         esp_http_client_cleanup(client);
       }
       vTaskDelay(10000 / portTICK_PERIOD_MS);
@@ -174,7 +173,7 @@ void httpsTask(void *pvParameter) {
   }
 }
 
-void httpsAuthenticate(void) {
+esp_err_t httpsAuthenticate(void) {
   ESP_LOGI(HTTPTAG, "Trying to auth");
   esp_http_client_config_t config = {
       .url = "https://www.skippings.com/api/iot-device",
@@ -200,8 +199,13 @@ void httpsAuthenticate(void) {
     ESP_LOGI(HTTPTAG, "HTTPS Status = %d, content_length = %" PRId64,
              esp_http_client_get_status_code(client),
              esp_http_client_get_content_length(client));
+    if (esp_http_client_get_status_code(client) == 200) {
+      ESP_LOGI(HTTPTAG, "Successful Auth");
+      return ESP_OK;
+    }
   } else {
     ESP_LOGE(HTTPTAG, "Error perform http request %s",
              esp_err_to_name(authErr));
   }
+  return ESP_ERR_INVALID_RESPONSE;
 }
