@@ -1,5 +1,17 @@
+#Esp32 build files
 esp32/.cache/
 esp32/build/
 esp32/sdkconfig*
 .cache/
 compile_commands.json
+
+# Contact a team member to get the .env file
+.env
+
+# MacOS specific files
+.DS_Store
+
+# Deployment SSH keys
+id_rsa
+id_rsa.pub
+
