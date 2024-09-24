@@ -132,17 +132,16 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 }
 
 void https_with_url(void) {
-
   esp_http_client_config_t config = {
-      .url = "https://httpbin.org/get",
+      .url = "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5",
       .event_handler = _http_event_handler,
-      .crt_bundle_attach = esp_crt_bundle_attach,
+      .skip_cert_common_name_check = true,
+      .transport_type = HTTP_TRANSPORT_OVER_SSL,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
   esp_http_client_set_method(client, HTTP_METHOD_GET);
 
-  const char *testPost =
-      "{\"temperature\":100,\"humidity\":0,\"timestamp\":\"0\"}";
+  const char *testPost = "{\"temperature\":100,\"humidity\":0}";
   esp_http_client_set_url(
       client, "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5");
   esp_http_client_set_method(client, HTTP_METHOD_POST);
@@ -158,16 +157,6 @@ void https_with_url(void) {
   } else {
     ESP_LOGE(HTTPTAG, "Error perform http request %s", esp_err_to_name(err));
   }
+  ESP_LOGI(HTTPTAG, "Cert: %s", cert);
   esp_http_client_cleanup(client);
-
-  esp_tls_cfg_t tlsCfg = {
-      .crt_bundle_attach = esp_crt_bundle_attach,
-  };
-  struct esp_tls *tls =
-      esp_tls_conn_http_new("https://www.skippings.com", &tlsCfg);
-  if (tls != NULL) {
-    ESP_LOGI(HTTPTAG, "CON GOOD?????");
-  } else {
-    ESP_LOGE(HTTPTAG, "NO GOOD :/");
-  }
 }
