@@ -1,0 +1,4 @@
+#Esp32 build files
+.cache/
+build/
+sdkconfig*

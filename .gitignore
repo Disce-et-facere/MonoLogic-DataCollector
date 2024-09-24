@@ -1,10 +1,3 @@
-#Esp32 build files
-esp32/.cache/
-esp32/build/
-esp32/sdkconfig*
-.cache/
-compile_commands.json
-
 # Contact a team member to get the .env file
 .env
 
@@ -15,3 +8,6 @@ compile_commands.json
 id_rsa
 id_rsa.pub
 
+# clangD
+.cache/
+compile_commands.json
