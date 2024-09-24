@@ -20,29 +20,24 @@ void app_main(void) {
   }
   ESP_ERROR_CHECK(ret);
 
-  /*
   dht_t *dhtStructPtr = (dht_t *)malloc(sizeof(dht_t));
   dhtInit(dhtStructPtr);
 
-  TaskHandle_t mqttHandle = NULL;
+  TaskHandle_t httpsHandle = NULL;
   BaseType_t taskRet =
-      xTaskCreate(&httpsTask, "http task", 8192, dhtStructPtr, 5, &mqttHandle);
+      xTaskCreate(&httpsTask, "http task", 8192, dhtStructPtr, 5, &httpsHandle);
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
-    vTaskDelete(mqttHandle);
-    ESP_LOGE(MQTTTAG, "Could not allocate memory for task");
+    vTaskDelete(httpsHandle);
+    ESP_LOGE("HTTP", "Could not allocate memory for task");
     esp_restart();
-  }*/
+  }
 
-  /*TaskHandle_t dhtHandle = NULL;
+  TaskHandle_t dhtHandle = NULL;
   taskRet =
       xTaskCreate(&dhtTask, "DHT task", 4096, dhtStructPtr, 5, &dhtHandle);
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(dhtHandle);
-    ESP_LOGE(DHTTAG, "Could not allocate memory for task");
+    ESP_LOGE("DHT", "Could not allocate memory for task");
     esp_restart();
-  }*/
-  if (wifi_init_sta()) {
-    printMAC();
-    https_with_url();
   }
 }

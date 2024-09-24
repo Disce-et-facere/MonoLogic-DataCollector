@@ -1,35 +1,22 @@
-#include "esp_crt_bundle.h"
+#include "https.h"
+/*#include "esp_crt_bundle.h"*/
+#include "dht11.h"
+#include "esp_err.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_tls.h"
+#include "esp_wifi.h"
+#include "freertos/idf_additions.h"
+#include "portmacro.h"
+#include "wifi.h"
+#include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
 
+static const char *HTTPTAG = "HTTP";
+
 #define MAX_HTTP_RECV_BUFFER 512
 #define MAX_HTTP_OUTPUT_BUFFER 2048
-
-const char *HTTPTAG = "HTTP";
-
-const char *cert =
-    "-----BEGIN CERTIFICATE-----"
-    "MIIDKzCCAhOgAwIBAgIUXraiznIaZ/WUXzLO2gBKU6Fo/1owDQYJKoZIhvcNAQEL"
-    "BQAwJTELMAkGA1UEBhMCU0UxFjAUBgNVBAMMDXNraXBwaW5ncy5jb20wHhcNMjQw"
-    "OTIyMTAzMTU0WhcNMjUwOTIyMTAzMTU0WjAlMQswCQYDVQQGEwJTRTEWMBQGA1UE"
-    "AwwNc2tpcHBpbmdzLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB"
-    "ALp2IGVaA9fAxnPtoBW5JQfjk0SzMviajUjSbdw1Jomv15X/2rqLZYcQFqnyE6LJ"
-    "cydTs/1RSMFECWUw2b4j/l9z28PGlgxtfvR7F0TFhQoySRhIUNk7hPO395nuXXw9"
-    "CDbOhsmlMiy9MHaeihoOObyPheDwjCZx8pFUzgPDT6eVN/YgbJWNJzl14ppvixCr"
-    "7+8AoYQRaKYMZLyfhSm6twdQFyPu79hxjenwybcsJz5lNRuWGgZM0zBOXfFYiKyq"
-    "dH7gOBL7PEuvOdyV8Upn112FZSDKx6bk6xJlfXyBveX/b5WhPHI+J0887mt1aI4j"
-    "vyeFGNYpkYxqAdxMGtwoPwkCAwEAAaNTMFEwHQYDVR0OBBYEFO/kkzEqdBXsl+zt"
-    "2mVt2wrwviIWMB8GA1UdIwQYMBaAFO/kkzEqdBXsl+zt2mVt2wrwviIWMA8GA1Ud"
-    "EwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAEn31PzZsCVZZqH0YkcOLw1v"
-    "jZsEbRh0RtSInIF0f+YElOO+ptmiOiwtaI8OcjtdY2utXfcePOV+7A2rtXWUzhon"
-    "XtR4vVMttYr0TZ+V4nJDRUED+6+68spxw3PuwpvLzJWCpd3r7zsyNDfhxuBOWU1w"
-    "50PVlPnEXI3CRXl13ykenMyw4gQ7tEB8ekamdhd2RQn5LnYDTQhIyguUgCsz64vU"
-    "YGAhx3EzKBoi3rEZCbR68tMx4icgglb4AlNXwvPXKwwsGbzln9PudYCpuGkl2EVE"
-    "8jt3hCTNQ9egkNraAObeMFB0aHO5LMbF2a57NEidAIN4l8+97Gpnbu5qkAXd9PE="
-    "-----END CERTIFICATE-----";
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
   static char *output_buffer; // Buffer to store response of http request from
@@ -132,8 +119,17 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 }
 
 void https_with_url(void) {
+#define buffSize 128
+  uint8_t mac[6];
+  esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+  char url[buffSize];
+  snprintf(url, buffSize,
+           "https://www.skippings.com/api/sensor-data/"
+           "%0x2:%0x2:%0x2:%0x2:%0x2:%0x2)",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
   esp_http_client_config_t config = {
-      .url = "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5",
+      .url = url,
       .event_handler = _http_event_handler,
       .skip_cert_common_name_check = true,
       .transport_type = HTTP_TRANSPORT_OVER_SSL,
@@ -142,8 +138,8 @@ void https_with_url(void) {
   esp_http_client_set_method(client, HTTP_METHOD_GET);
 
   const char *testPost = "{\"temperature\":100,\"humidity\":0}";
-  esp_http_client_set_url(
-      client, "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5");
+  /*esp_http_client_set_url(*/
+  /*client, "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5");*/
   esp_http_client_set_method(client, HTTP_METHOD_POST);
   esp_http_client_set_header(client, "Content-Type", "application/json");
   esp_http_client_set_post_field(client, testPost, strlen(testPost));
@@ -157,6 +153,96 @@ void https_with_url(void) {
   } else {
     ESP_LOGE(HTTPTAG, "Error perform http request %s", esp_err_to_name(err));
   }
-  ESP_LOGI(HTTPTAG, "Cert: %s", cert);
   esp_http_client_cleanup(client);
+}
+
+void httpsTask(void *pvParameter) {
+#define buffSize 128
+  if (wifi_init_sta()) {
+
+    dht_t *dht = (dht_t *)pvParameter;
+
+    uint8_t mac[6];
+    esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+
+    char url[buffSize];
+    snprintf(url, buffSize,
+             "https://www.skippings.com/api/sensor-data/"
+             "%0x2:%0x2:%0x2:%0x2:%0x2:%0x2)",
+             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    esp_http_client_config_t config = {
+        .url = url,
+        .event_handler = _http_event_handler,
+        .skip_cert_common_name_check = true,
+        .transport_type = HTTP_TRANSPORT_OVER_SSL,
+    };
+
+    while (true) {
+      if (!dht->sent) {
+        esp_http_client_handle_t client = esp_http_client_init(&config);
+        esp_http_client_set_method(client, HTTP_METHOD_POST);
+        esp_http_client_set_header(client, "Content-Type", "application/json");
+        // TODO: Auth my MAC, overriding now
+        /*esp_http_client_set_url(*/
+        /*client, "https://www.skippings.com/api/sensor-data/A1:B2:C3:D4:E5");*/
+
+        char post[buffSize];
+        snprintf(post, buffSize, "{\"temperature\":%1.f,\"humidity\":%1.f}",
+                 getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
+        dht->sent = true;
+        ESP_LOGI(HTTPTAG, "%s", post);
+
+        esp_http_client_set_post_field(client, post, strlen(post));
+        esp_err_t err = esp_http_client_perform(client);
+
+        if (err == ESP_OK) {
+          ESP_LOGI(HTTPTAG, "HTTPS Status = %d, content_length = %" PRId64,
+                   esp_http_client_get_status_code(client),
+                   esp_http_client_get_content_length(client));
+          if (esp_http_client_get_status_code(client) == 401) {
+            httpsAuthenticate();
+          }
+        } else {
+          ESP_LOGE(HTTPTAG, "Error perform http request %s",
+                   esp_err_to_name(err));
+        }
+
+        esp_http_client_cleanup(client);
+      }
+      vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
+  }
+}
+
+void httpsAuthenticate(void) {
+  ESP_LOGI(HTTPTAG, "Trying to auth");
+  esp_http_client_config_t config = {
+      .url = "https://www.skippings.com/api/iot-device",
+      .event_handler = _http_event_handler,
+      .skip_cert_common_name_check = true,
+      .transport_type = HTTP_TRANSPORT_OVER_SSL,
+  };
+
+  esp_http_client_handle_t client = esp_http_client_init(&config);
+  esp_http_client_set_method(client, HTTP_METHOD_POST);
+  esp_http_client_set_header(client, "Content-Type",
+                             "application/x-www-form-urlencoded");
+  uint8_t mac[6];
+  esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+  char post[64];
+  snprintf(post, 64,
+           "name=EmilESP&mac="
+           "%0x2:%0x2:%0x2:%0x2:%0x2:%0x2)",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  esp_http_client_set_post_field(client, post, strlen(post));
+  esp_err_t authErr = esp_http_client_perform(client);
+  if (authErr == ESP_OK) {
+    ESP_LOGI(HTTPTAG, "HTTPS Status = %d, content_length = %" PRId64,
+             esp_http_client_get_status_code(client),
+             esp_http_client_get_content_length(client));
+  } else {
+    ESP_LOGE(HTTPTAG, "Error perform http request %s",
+             esp_err_to_name(authErr));
+  }
 }

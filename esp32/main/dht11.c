@@ -9,6 +9,8 @@
 #include "soc/gpio_num.h"
 #include <stdint.h>
 
+static const char *DHTTAG = "DHT";
+
 dht_err_t dhtInit(dht_t *dht) {
   dht->gpio = GPIO_NUM_7;
   dht->lastRead = -2000000;
@@ -80,8 +82,13 @@ dht_err_t dhtRead(dht_t *dht) {
   dht->temperature.decimal = incomingData[3];
   dht->humidity.integer = (uint8_t)incomingData[0];
   dht->humidity.decimal = incomingData[1];
+  dht->sent = false;
 
   return DHT_OK;
+}
+
+float getDHTValue(dhtValue *dhtValue) {
+  return dhtValue->integer + ((float)dhtValue->decimal / 10);
 }
 
 void dhtTask(void *pvParameter) {
@@ -92,10 +99,9 @@ void dhtTask(void *pvParameter) {
     switch (dhtStatus) {
     case DHT_OK:
       ESP_LOGI(DHTTAG, "read ok");
-      ESP_LOGI(DHTTAG, "Temperature: %d.%d Humidity: %d.%d%%",
-               dhtStructPtr->temperature.integer,
-               dhtStructPtr->temperature.decimal,
-               dhtStructPtr->humidity.integer, dhtStructPtr->humidity.decimal);
+      ESP_LOGI(DHTTAG, "Temp: %.1f\tHumidity: %1.f",
+               getDHTValue(&dhtStructPtr->temperature),
+               getDHTValue(&dhtStructPtr->humidity));
       break;
     case DHT_TIMEOUT_FAIL:
       ESP_LOGE(DHTTAG, "Dht timeout error");
