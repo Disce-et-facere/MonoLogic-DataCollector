@@ -147,7 +147,7 @@ void httpsTask(void *pvParameter) {
         esp_http_client_set_header(client, "Content-Type", "application/json");
 
         char post[buffSize];
-        snprintf(post, buffSize, "{\"temperature\":%1.f,\"humidity\":%1.f}",
+        snprintf(post, buffSize, "{\"temperature\":%.1f,\"humidity\":%.1f}",
                  getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
         dht->sent = true;
         ESP_LOGI(HTTPTAG, "%s", post);
