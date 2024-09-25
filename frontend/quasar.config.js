@@ -21,7 +21,7 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-      
+
       'axios',
     ],
 
@@ -98,7 +98,8 @@ module.exports = configure(function (/* ctx */) {
     devServer: {
       hmr: {
         host: 'localhost',
-        port: 443,
+        //port: 443,
+        clientPort: 443
       },
     },
 
