@@ -278,11 +278,11 @@ export default defineComponent({
     const fetchStations = async () => {
       console.log('API - Fetching stations...');
       try {
-        const response = await axios.get(
-          'https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json'
-        );
-        stations.value = response.data.station;
-        updateGlobePoints();
+        // const response = await axios.get(
+        //   'https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json'
+        // );
+        // stations.value = response.data.station;
+        // updateGlobePoints();
       } catch (error) {
         console.error('Error fetching stations:', error);
       }
@@ -520,21 +520,21 @@ export default defineComponent({
           });
         });
 
-        // Adds devices
-        devices.value.forEach((device) => {
-          const isInSelectedDevices = selectedDevices.value?.some(
-            (selected) => selected.mac === device.mac
-          );
-          pointsData.push({
-            lat: device.latitude,
-            lng: device.longitude,
-            size: 0,
-            radius: 0.05,
-            color: isInSelectedDevices ? 'green' : 'blue',
-            label: device.name,
-            name: device.name,
-          });
-        });
+        // // Adds devices
+        // devices.value.forEach((device) => {
+        //   const isInSelectedDevices = selectedDevices.value?.some(
+        //     (selected) => selected.mac === device.mac
+        //   );
+        //   pointsData.push({
+        //     lat: device.latitude,
+        //     lng: device.longitude,
+        //     size: 0,
+        //     radius: 0.05,
+        //     color: isInSelectedDevices ? 'green' : 'blue',
+        //     label: device.name,
+        //     name: device.name,
+        //   });
+        // });
 
         globeInstance.value.pointsData(pointsData);
       }
