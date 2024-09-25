@@ -43,10 +43,6 @@ void wakeDHT(dht_t *dht) {
 
 dht_err_t dhtRead(dht_t *dht) {
   int64_t curTime = esp_timer_get_time();
-  if (curTime < 2000000) {
-    ets_delay_us(2000000 - curTime);
-    curTime = esp_timer_get_time();
-  }
   if (dht->lastRead > curTime - 2000000) {
     return DHT_READ_TOO_EARLY;
   }
@@ -95,6 +91,7 @@ float getDHTValue(dhtValue *dhtValue) {
 
 void dhtTask(void *pvParameter) {
   dht_t *dhtStructPtr = (dht_t *)pvParameter;
+  vTaskDelay((dhtTimeBetweenRead * 1000) / portTICK_PERIOD_MS);
   ESP_LOGI(DHTTAG, "Entering dht loop");
   while (true) {
     dht_err_t dhtStatus = dhtRead(dhtStructPtr);
