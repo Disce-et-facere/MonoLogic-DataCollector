@@ -23,48 +23,13 @@ void app_main(void) {
   }
   ESP_ERROR_CHECK(ret);
 
-  /*
-  // NVS testing
-  int32_t amountHTTPSSent = 0;
-  const char *nvsTAG = "NVS";
-  ESP_LOGI(nvsTAG, "Opening NVS");
-
-
-  nvs_handle_t nvsHandle;
-  ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
-  if (ret == ESP_OK) {
-    ret = nvs_get_i32(nvsHandle, "amountSent", &amountHTTPSSent);
-    switch (ret) {
-    case ESP_OK:
-      ESP_LOGI(nvsTAG, "Read ok!");
-      break;
-    case ESP_ERR_NVS_NOT_FOUND:
-      ESP_LOGI(nvsTAG, "Value not found!");
-      break;
-    default:
-      printf("Error (%s) reading!\n", esp_err_to_name(ret));
-      break;
-    }
-
-    amountHTTPSSent++;
-
-    ret = nvs_set_i32(nvsHandle, "amountSent", amountHTTPSSent);
-    if (ret != ESP_OK) {
-      ESP_LOGI(nvsTAG, "set failed");
-    }
-    ret = nvs_commit(nvsHandle);
-    if (ret != ESP_OK) {
-      ESP_LOGI(nvsTAG, "commit failed");
-    }
-
-    nvs_close(nvsHandle);
-  }
-
-  ESP_LOGI(nvsTAG, "Value is %d", (int)amountHTTPSSent);
-  */
-
   dht_t *dhtStructPtr = (dht_t *)malloc(sizeof(dht_t));
   ESP_ERROR_CHECK(dhtInit(dhtStructPtr));
+
+  settings_t *settingsPtr = (settings_t *)malloc(sizeof(settings_t));
+  ESP_ERROR_CHECK(settingsInit(settingsPtr));
+
+  settingsPtr->dht = dhtStructPtr;
 
   TaskHandle_t httpsHandle = NULL;
   BaseType_t taskRet =

@@ -5,7 +5,6 @@
 #include "freertos/idf_additions.h"
 #include "nvs.h"
 #include "projdefs.h"
-#include <stdint.h>
 #include <stdio.h>
 
 static interpret_ret interpretInput(char *str, settings_t *settings) {
@@ -23,6 +22,8 @@ static interpret_ret interpretInput(char *str, settings_t *settings) {
     return INTERP_RESTART;
   case 'c':
     return INTERP_COMMIT;
+  case 'g':
+    return INTERP_REQ_PRINT;
   }
   return INTERPED_BAD_DATA;
 }
@@ -47,15 +48,31 @@ static esp_err_t nvsRead(const char *key, char *buffer, size_t buffSize) {
   return ret;
 }
 
-static esp_err_t nvsCommit() { return ESP_OK; }
+static esp_err_t nvsCommit(const char *key, char *buffer) {
+  ESP_LOGI("NVS", "NVS starting");
+  nvs_handle_t nvsHandle;
+  esp_err_t ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
+  if (ret == ESP_OK) {
+    ret = nvs_set_str(nvsHandle, key, buffer);
+    if (ret != ESP_OK) {
+      ESP_LOGI("NVS", "%s set failed", key);
+    }
+    ret = nvs_commit(nvsHandle);
+    if (ret != ESP_OK) {
+      ESP_LOGI("NVS", "commit failed");
+    }
+  }
+  nvs_close(nvsHandle);
+  return ret;
+}
 
-static esp_err_t settingsInit(settings_t *settings) {
+esp_err_t settingsInit(settings_t *settings) {
   if (settings == NULL) {
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
   }
-  (void)nvsRead("SSID", settings->SSID, sizeof(settings->SSID));
-  (void)nvsRead("password", settings->password, sizeof(settings->password));
-  (void)nvsRead("name", settings->name, sizeof(settings->name));
+  (void)nvsRead(ssid, settings->SSID, sizeof(settings->SSID));
+  (void)nvsRead(pw, settings->password, sizeof(settings->password));
+  (void)nvsRead(name, settings->name, sizeof(settings->name));
   return ESP_OK;
 }
 
@@ -86,7 +103,9 @@ void usbTask(void *pvParameter) {
       case INTERP_OK:
         break;
       case INTERP_COMMIT:
-        nvsCommit();
+        nvsCommit(ssid, settingsPtr->SSID);
+        nvsCommit(pw, settingsPtr->SSID);
+        nvsCommit(name, settingsPtr->SSID);
         ESP_LOGI("USB", "Commit");
         break;
       case INTERP_RESTART:
@@ -95,10 +114,12 @@ void usbTask(void *pvParameter) {
       case INTERPED_BAD_DATA:
         ESP_LOGI("USB", "Bad data");
         break;
+      case INTERP_REQ_PRINT:
+        printf("SSID: %s\nPW: %s\nName: %s\n", settingsPtr->SSID,
+               settingsPtr->password, settingsPtr->name);
+        break;
       }
     }
-    printf("SSID: %s\nPW: %s\nName: %s\n", settingsPtr->SSID,
-           settingsPtr->password, settingsPtr->name);
     vTaskDelay((2 * 1000) / portTICK_PERIOD_MS);
   }
 }
