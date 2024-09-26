@@ -30,6 +30,7 @@ The esp will send over the current config if you send it an ascii g.
 
 When you've setup wifi credentials you can go ahead and restart the ESP with a button or by sending ascii r.
 
+### More help
 
 See the Getting Started Guide for all the steps to configure and use the ESP-IDF to build projects.
 
