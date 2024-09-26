@@ -1,5 +1,6 @@
 package com.systemintegration.backend.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,10 @@ import com.systemintegration.backend.dto.SensorDataResponseDTO;
 import com.systemintegration.backend.model.SensorData;
 import com.systemintegration.backend.service.IoTDeviceService;
 import com.systemintegration.backend.service.SensorDataService;
+import com.systemintegration.backend.service.IpDataService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sensor-data")
@@ -29,8 +32,8 @@ public class SensorDataController {
     @Autowired
     private IoTDeviceService deviceService;
 
-    //@Autowired
-    //private IpDataService ipDataService;
+    @Autowired
+    private IpDataService ipDataService;
 
     @GetMapping
     public ResponseEntity<List<SensorDataResponseDTO>> getAllSensorData() {
@@ -90,24 +93,47 @@ public class SensorDataController {
         boolean isValid = deviceService.validateMAC(mac);
 
         if (isValid) {
-            // Perform IP lookup to get the location data
-            //String clientIp = request.getHeader("X-Forwarded-For");
-            //Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
-            //System.out.println("IP Location data: " + ipLocation);
+            // Check if latitude and longitude are provided in the request body
+            if (sensorData.getLatitude() != null && sensorData.getLongitude() != null) {
+                // Use the provided latitude and longitude from the request body
+                System.out.println("Using provided latitude and longitude.");
+            } else {
+                // Perform IP lookup to get the location data if latitude and longitude are not
+                // provided
+                String clientIp = request.getHeader("X-Forwarded-For");
 
-            // Extract latitude and longitude from the IP lookup response
-           // Double latitude = (Double) ipLocation.get("latitude");
-            //Double longitude = (Double) ipLocation.get("longitude");
+                if (clientIp != null) {
+                    // Decode the IP string (in case it's encoded)
+                    clientIp = java.net.URLDecoder.decode(clientIp, StandardCharsets.UTF_8);
+
+                    // Split the IP string if it contains multiple IP addresses and take the first
+                    // one
+                    String[] ipAddresses = clientIp.split(",");
+                    clientIp = ipAddresses[0].trim(); // Use the first IP address
+                } else {
+                    // Fallback to remote address if 'X-Forwarded-For' is not present
+                    clientIp = request.getRemoteAddr();
+                }
+
+                Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
+
+                // Extract latitude and longitude from the IP lookup response
+                Double latitude = (Double) ipLocation.get("latitude");
+                Double longitude = (Double) ipLocation.get("longitude");
+
+                // Set latitude and longitude from the IP lookup result
+                sensorData.setLatitude(latitude);
+                sensorData.setLongitude(longitude);
+            }
 
             // Save sensor data to the database
             sensorData.setMac(mac);
-            //sensorData.setLatitude(latitude); // Set the latitude
-            //sensorData.setLongitude(longitude); // Set the longitude
-
             sensorDataService.saveSensorData(sensorData);
+
             return ResponseEntity.ok("Sensor data saved successfully");
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Device not authorized");
         }
     }
+
 }
