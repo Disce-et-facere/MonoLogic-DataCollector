@@ -1,10 +1,12 @@
-#include "wifi.h"
+#include "include/wifi.h"
 #include "esp_event.h"
 #include "esp_event_base.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
+#include "include/usb.h"
+#include <stdint.h>
 #include <string.h>
 
 #define ESP_WIFI_SSID CONFIG_ESP_WIFI_SSID
@@ -13,6 +15,8 @@
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
+
+static const char *WIFITAG = "wifi station";
 
 #if CONFIG_ESP_WPA3_SAE_PWE_HUNT_AND_PECK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_HUNT_AND_PECK
@@ -66,7 +70,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
   }
 }
 
-bool wifi_init_sta(void) {
+bool wifiInitStation(settings_t *settings) {
   s_wifi_event_group = xEventGroupCreate();
   ESP_ERROR_CHECK(esp_netif_init());
   ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -81,11 +85,10 @@ bool wifi_init_sta(void) {
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
       IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL,
       &instance_got_ip));
+
   wifi_config_t wifi_config = {
       .sta =
           {
-              .ssid = ESP_WIFI_SSID,
-              .password = ESP_WIFI_PASS,
               /* Authmode threshold resets to WPA2 as default if password
                * matches WPA2 standards (password len => 8). If you want to
                * connect the device to deprecated WEP/WPA networks, Please set
@@ -98,6 +101,21 @@ bool wifi_init_sta(void) {
               .sae_h2e_identifier = EXAMPLE_H2E_IDENTIFIER,
           },
   };
+
+  for (int i = 0; i < 32; i++) {
+    wifi_config.sta.ssid[i] = settings->SSID[i];
+    if (settings->SSID[i] == '\0') {
+      break;
+    }
+  }
+
+  for (int i = 0; i < 64; i++) {
+    wifi_config.sta.password[i] = settings->password[i];
+    if (settings->password[i] == '\0') {
+      break;
+    }
+  }
+
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
@@ -112,10 +130,10 @@ bool wifi_init_sta(void) {
    * can test which event actually happened. */
   if (bits & WIFI_CONNECTED_BIT) {
     ESP_LOGI(WIFITAG, "connected to ap SSID:%s password:REDACTED",
-             ESP_WIFI_SSID);
+             settings->SSID);
   } else if (bits & WIFI_FAIL_BIT) {
     ESP_LOGI(WIFITAG, "Failed to connect to SSID:%s, password:REDACTED",
-             ESP_WIFI_SSID);
+             settings->SSID);
   } else {
     ESP_LOGE(WIFITAG, "UNEXPECTED EVENT");
   }

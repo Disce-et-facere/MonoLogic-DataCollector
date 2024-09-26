@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define dhtTimeBetweenRead 5
+
 typedef enum dht_err_t {
   DHT_OK,
   DHT_TIMEOUT_FAIL,
@@ -15,7 +17,7 @@ typedef enum dht_err_t {
 
 typedef struct dhtValue {
   int8_t integer;
-  uint8_t decimal;
+  int8_t decimal;
 } dhtValue;
 
 typedef struct dht_t {

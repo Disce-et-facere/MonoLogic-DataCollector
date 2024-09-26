@@ -1,14 +1,15 @@
-#include "https.h"
+#include "include/https.h"
 /*#include "esp_crt_bundle.h"*/
-#include "dht11.h"
 #include "esp_err.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_tls.h"
 #include "esp_wifi.h"
 #include "freertos/idf_additions.h"
+#include "include/dht11.h"
+#include "include/usb.h"
+#include "include/wifi.h"
 #include "portmacro.h"
-#include "wifi.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
@@ -120,9 +121,9 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 
 void httpsTask(void *pvParameter) {
 #define buffSize 128
-  if (wifi_init_sta()) {
-
-    dht_t *dht = (dht_t *)pvParameter;
+  settings_t *settingsPtr = (settings_t *)pvParameter;
+  if (wifiInitStation(settingsPtr)) {
+    dht_t *dht = settingsPtr->dht;
 
     uint8_t mac[6];
     esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
@@ -147,7 +148,7 @@ void httpsTask(void *pvParameter) {
         esp_http_client_set_header(client, "Content-Type", "application/json");
 
         char post[buffSize];
-        snprintf(post, buffSize, "{\"temperature\":%1.f,\"humidity\":%1.f}",
+        snprintf(post, buffSize, "{\"temperature\":%.1f,\"humidity\":%.1f}",
                  getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
         dht->sent = true;
         ESP_LOGI(HTTPTAG, "%s", post);
@@ -168,12 +169,18 @@ void httpsTask(void *pvParameter) {
         }
         esp_http_client_cleanup(client);
       }
-      vTaskDelay(10000 / portTICK_PERIOD_MS);
+      vTaskDelay((updateTime * 1000) / portTICK_PERIOD_MS);
     }
   }
+  ESP_LOGE("WIFI", "Could not establish wifi connection!");
+  vTaskDelete(NULL);
 }
 
 esp_err_t httpsAuthenticate(void) {
+  ESP_LOGE(HTTPTAG, "You need to auth the MAC address before!");
+  printMAC();
+  return ESP_ERR_INVALID_RESPONSE;
+
   ESP_LOGI(HTTPTAG, "Trying to auth");
   esp_http_client_config_t config = {
       .url = "https://www.skippings.com/api/iot-device",
