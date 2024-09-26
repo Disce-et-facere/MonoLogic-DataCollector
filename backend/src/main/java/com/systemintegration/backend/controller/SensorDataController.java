@@ -95,6 +95,12 @@ public class SensorDataController {
         boolean isValid = deviceService.validateMAC(mac);
 
         if (isValid) {
+            // Check if temperature and humidity are provided
+            if (sensorData.getTemperature() == null || sensorData.getHumidity() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Temperature and humidity are required fields");
+            }
+
             // Check if latitude and longitude are provided in the request body
             if (sensorData.getLatitude() != null && sensorData.getLongitude() != null) {
                 // Use the provided latitude and longitude from the request body
