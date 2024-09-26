@@ -13,7 +13,7 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl
       - ./frontend/dist/spa:/usr/share/nginx/html
     depends_on:
-      - frontend
+      # - frontend
       - backend
 
   frontend:
