@@ -20,15 +20,15 @@ Run `idf.py -p PORT flash monitor` to build, flash and monitor the project.
 ### Configuring wifi
 
 You can run the bash script setting.sh if you have a bash compliant shell with the arguments USB-Port, SSID, Password and Name in that order.\
-The ESP will echo back SSID OK and so on if it parsed it correctly.\ 
+The ESP will echo back SSID OK and so on if it parsed it correctly.
 
 If you do not have access to a bash script you need to send the data manually, SSID is prefixed with an ascii s, 
 password an ascii p and name with an ascii n. e.g. to set the name to "ESPTemp" send the string "nESPTemp".\
-To save the data you need to send an ascii c to commit it to the flash memory.\
+To save the data you need to send an ascii c to commit it to the flash memory.
 
-The esp will send over the current config if you send it an ascii g\ 
+The esp will send over the current config if you send it an ascii g.
 
-When you've setup wifi credentials you can go ahead and restart the ESP with a button or by sending ascii r.\
+When you've setup wifi credentials you can go ahead and restart the ESP with a button or by sending ascii r.
 
 
 See the Getting Started Guide for all the steps to configure and use the ESP-IDF to build projects.
