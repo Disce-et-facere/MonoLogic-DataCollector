@@ -283,6 +283,7 @@ export default defineComponent({
     const macValueDelete = ref('');
     const addMsg = ref('');
     const deleteMsg = ref('');
+    const pollInterval = ref<number | null>(null);
 
     // Station sections -->
     const fetchStations = async () => {
@@ -457,6 +458,10 @@ export default defineComponent({
       }
     };
 
+    const pollingFunction = async () => {
+      await fetchDevices();
+    };
+
     const filteredDevices = computed(() => {
       return devices.value.filter(devices =>
         devices.name
@@ -550,6 +555,7 @@ export default defineComponent({
         const response = await axios.post(url);
         console.log('Device added successfully:', response.data);
         addMsg.value = 'DEVICE ADDED!';
+        fetchDevices();
 
         nameValue.value = '';
         macValueAdd.value = '';
@@ -558,6 +564,9 @@ export default defineComponent({
         addMsg.value = 'ADDING FAILED!';
       }
     };
+
+
+
 
     const clearAddBtnPanel = () => {
       addMsg.value = '';
@@ -643,6 +652,7 @@ export default defineComponent({
     };
 
     onMounted(async () => {
+      pollInterval.value = setInterval(pollingFunction, 5000);
       if (globeContainer.value) {
         try {
           await new Promise<void>((resolve, reject) => {
@@ -688,7 +698,12 @@ export default defineComponent({
       }
     });
 
+
+
     onBeforeUnmount(() => {
+      if (pollInterval.value) {
+        clearInterval(pollInterval.value);
+      }
       window.removeEventListener('resize', handleResize);
     });
 
@@ -731,7 +746,8 @@ export default defineComponent({
       addDevice,
       deleteDevice,
       addMsg,
-      deleteMsg
+      deleteMsg,
+      intervalId: null,
     };
   }
 });
