@@ -131,7 +131,7 @@ void httpsTask(void *pvParameter) {
     char url[buffSize];
     snprintf(url, buffSize,
              "https://www.skippings.com/api/sensor-data/"
-             "%0x2:%0x2:%0x2:%0x2:%0x2:%0x2)",
+             "%0x2:%0x2:%0x2:%0x2:%0x2:%0x2",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     esp_http_client_config_t config = {
