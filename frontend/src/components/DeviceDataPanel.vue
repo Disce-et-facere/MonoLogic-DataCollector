@@ -9,14 +9,6 @@
           @click="closeDeviceContainer"
         ></q-btn>
       </div>
-      <q-toggle
-        v-if="multipleDevices"
-        v-model="displayType"
-        label="Display as:"
-        :labels="['Humidity', 'Temperature']"
-        class="toggle-display"
-        @change="updateChartOptions"
-      />
     </div>
     <div class="chart-container">
       <apexchart v-if="chartOptions" :options="chartOptions" :series="series" />
@@ -34,33 +26,21 @@ import {
   PropType,
 } from 'vue';
 import ApexCharts from 'vue3-apexcharts';
-import axios from 'axios';
 import { ApexOptions } from 'apexcharts';
 
 interface Device {
-  id: number;
   mac: string;
   name: string;
-  temperature: number;
-  humidity: number;
-  timestamp: string;
+  temperature: number[];
+  humidity: number[];
+  timestamp: string[];
   latitude: number;
   longitude: number;
 }
 
-interface HistoryEntry {
-  timestamp: string;
-  temperature: number;
-  humidity: number;
-}
-
-interface ApiResponse {
-  value: HistoryEntry[];
-}
-
 interface SeriesData {
   name: string;
-  type: 'line' | 'bar';
+  type: 'line' | 'bar' | 'area' | 'column';
   data: Array<{ x: Date; y: number }>;
 }
 
@@ -70,10 +50,6 @@ export default defineComponent({
     apexchart: ApexCharts,
   },
   props: {
-    selectedDevice: {
-      type: Object as PropType<Device | null>,
-      default: null,
-    },
     selectedDevices: {
       type: Array as PropType<Device[]>,
       default: () => [],
@@ -91,56 +67,95 @@ export default defineComponent({
     const chartOptions = ref<ApexOptions | null>(null);
     const displayType = ref('temperature');
 
-    const fetchDeviceHistory = async () => {
-      if (!props.selectedDevice || !props.selectedDevice.mac) return;
+    interface DataPoint {
+        x: Date;
+        y: number;
+    }
 
-      try {
-        const response = await axios.get<ApiResponse>(
-          '/api/iot-device/${props.selectedDevice.mac}'
-        );
+    const temperatureData: DataPoint[] = [];
+    const humidityData: DataPoint[] = [];
 
-        const temperatureData = response.data.value.map((entry) => ({
-          x: new Date(entry.timestamp),
-          y: entry.temperature,
-        }));
+    const fetchDeviceHistory = () => {
+        if (!props.selectedDevices || props.selectedDevices.length === 0) return;
 
-        const humidityData = response.data.value.map((entry) => ({
-          x: new Date(entry.timestamp),
-          y: entry.humidity,
-        }));
+        temperatureData.length = 0;
+        humidityData.length = 0;
+
+        props.selectedDevices.forEach((device: Device) => {
+            const length = device.timestamp.length;
+            for (let index = 0; index < length; index++) {
+                temperatureData.push({
+                    x: new Date(device.timestamp[index]),
+                    y: device.temperature[index],
+                });
+
+                humidityData.push({
+                    x: new Date(device.timestamp[index]),
+                    y: device.humidity[index],
+                });
+            }
+        });
 
         series.value = [
-          {
-            name: 'Temperature',
-            type: 'line',
-            data: temperatureData,
-          },
-          {
-            name: 'Humidity',
-            type: 'bar',
-            data: humidityData,
-          },
+            {
+                name: 'Temperature',
+                type: 'bar',
+                data: temperatureData,
+            },
+            {
+                name: 'Humidity',
+                type: 'area',
+                data: humidityData,
+            },
         ];
 
-        chartOptions.value = {
-          chart: {
-            zoom: { enabled: true },
-            toolbar: { show: false },
-            events: {
-              mounted: (chart) => {
-                chart.updateOptions({
-                  chart: {
-                    height: '100%',
-                  },
-                });
+      chartOptions.value = {
+        chart: {
+          zoom: { enabled: true },
+          toolbar: { show: false },
+          events: {
+            mounted: (chart) => {
+              chart.updateOptions({
+                chart: {
+                  height: '100%',
+                },
+              });
+            },
+          },
+        },
+        colors: ['#f73207', '#3EE679'],
+        xaxis: {
+          type: 'datetime',
+          title: {
+            text: 'Time',
+            style: {
+              color: '#3EE679',
+            },
+          },
+          labels: {
+            style: {
+              colors: '#3EE679',
+            },
+          },
+        },
+        yaxis: [
+          {
+            title: {
+              text: 'Temperature (°C)',
+              style: {
+                color: '#f73207',
+              },
+            },
+            labels: {
+              style: {
+                colors: '#f73207',
               },
             },
           },
-          colors: ['#f73207', '#3EE679'],
-          xaxis: {
-            type: 'datetime',
+          {
+            opposite: true,
             title: {
-              text: 'Time',
+              text: 'Humidity (%)',
               style: {
                 color: '#3EE679',
               },
@@ -151,145 +166,180 @@ export default defineComponent({
               },
             },
           },
-          yaxis: [
-            {
-              title: {
-                text: 'Temperature (°C)',
-                style: {
-                  color: '#f73207',
-                },
-              },
-              labels: {
-                style: {
-                  colors: '#f73207',
-                },
-              },
-            },
-            {
-              opposite: true,
-              title: {
-                text: 'Humidity (%)',
-                style: {
-                  color: '#3EE679',
-                },
-              },
-              labels: {
-                style: {
-                  colors: '#3EE679',
-                },
-              },
-            },
-          ],
-          title: {
-            text: props.selectedDevice?.name || 'Device Temperature History',
-            align: 'center',
-            style: {
-              color: '#3EE679',
-              fontSize: '18px',
-            },
-          },
-          grid: {
-            borderColor: '#3EE679',
-          },
-          tooltip: {
-            theme: 'dark',
-          },
-          stroke: {
-            curve: 'smooth',
-            width: 2,
-          },
-          legend: {
-            labels: {
-              colors: '#3EE679', // Change the color of the legend text
-            },
-          },
-          plotOptions: {
-            bar: {
-              columnWidth: '5%',
-            },
-          },
-        };
-      } catch (error) {
-        console.error('Error fetching station history data:', error);
-      }
-    };
-
-    const fetchMultipleDeviceHistory = async () => {
-      if (!props.selectedDevices || props.selectedDevices.length === 0) return;
-
-      try {
-        const temperatureSeriesData: SeriesData[] = [];
-        const humiditySeriesData: SeriesData[] = [];
-
-        for (const device of props.selectedDevices) {
-          const response = await axios.get<ApiResponse>(
-            `/api/iot-device/${device.mac}`
-          );
-
-          const temperatureData = response.data.value.map((entry) => ({
-            x: new Date(entry.timestamp),
-            y: entry.temperature,
-          }));
-
-          const humidityData = response.data.value.map((entry) => ({
-            x: new Date(entry.timestamp),
-            y: entry.humidity,
-          }));
-
-          temperatureSeriesData.push({
-            name: `${device.name} Temperature`,
-            type: 'line',
-            data: temperatureData,
-          });
-
-          humiditySeriesData.push({
-            name: `${device.name} Humidity`,
-            type: 'bar',
-            data: humidityData,
-          });
-        }
-
-        // Initially show both temperature and humidity for multiple devices
-        series.value = [...temperatureSeriesData, ...humiditySeriesData];
-
-        updateChartOptions(); // Initialize chart options based on the default display type
-      } catch (error) {
-        console.error('Error fetching multiple device history data:', error);
-      }
-    };
-
-    const updateChartOptions = () => {
-      const isHumidity = displayType.value === 'humidity';
-
-      // Filter the series based on the display type (humidity or temperature)
-      series.value = series.value.filter((s) =>
-        isHumidity
-          ? s.name.includes('Humidity')
-          : s.name.includes('Temperature')
-      );
-
-      chartOptions.value = {
-        chart: {
-          zoom: { enabled: true },
-          toolbar: { show: false },
-        },
-        colors: isHumidity ? ['#3EE679'] : ['#f73207'],
-        xaxis: {
-          type: 'datetime',
-          title: {
-            text: 'Time',
+        ],
+        title: {
+          text: props.selectedDevices[0].name || 'Device Temperature History',
+          align: 'center',
+          style: {
+            color: '#3EE679',
+            fontSize: '18px',
           },
         },
-        yaxis: {
-          title: {
-            text: isHumidity ? 'Humidity (%)' : 'Temperature (°C)',
-          },
+        grid: {
+          borderColor: '#3EE679',
+        },
+        tooltip: {
+          theme: 'dark',
         },
         stroke: {
           curve: 'smooth',
+          width: 2,
+        },
+        legend: {
+          labels: {
+            colors: '#3EE679',
+          },
+        },
+        plotOptions: {
+          bar: {
+            columnWidth: '15%',
+          },
         },
       };
     };
+
+    const fetchMultipleDeviceHistory = () => {
+      if (!props.selectedDevices || props.selectedDevices.length === 0) return;
+
+      const temperatureSeriesData: SeriesData[] = [];
+      const humiditySeriesData: SeriesData[] = [];
+
+      props.selectedDevices.forEach((device) => {
+          const temperatureData: DataPoint[] = device.temperature.map((temp, index) => ({
+              x: new Date(device.timestamp[index]),
+              y: temp,
+          }));
+
+          const humidityData: DataPoint[] = device.humidity.map((hum, index) => ({
+              x: new Date(device.timestamp[index]),
+              y: hum,
+          }));
+
+          temperatureSeriesData.push({
+              name: `${device.name} Temperature`,
+              type: 'bar',
+              data: temperatureData,
+          });
+
+          humiditySeriesData.push({
+              name: `${device.name} Humidity`,
+              type: 'area',
+              data: humidityData,
+          });
+      });
+
+      series.value = [...temperatureSeriesData, ...humiditySeriesData];
+      updateChartOptions();
+  };
+
+    const updateChartOptions = () => {
+      const isDisplayingHumidity = displayType.value === 'humidity';
+
+      const filteredSeries = isDisplayingHumidity
+          ? series.value.filter((s) => s.name.includes('Humidity'))
+          : series.value.filter((s) => s.name.includes('Temperature'));
+
+      chartOptions.value = {
+          chart: {
+              zoom: { enabled: true },
+              toolbar: { show: false },
+              events: {
+                  mounted: (chart) => {
+                      chart.updateOptions({
+                          chart: {
+                              height: '100%',
+                          },
+                      });
+                  },
+              },
+          },
+          colors: ['#f70f0f', '#e80c94', '#3EE679', '#58cc41'],
+          xaxis: {
+              type: 'datetime',
+              title: {
+                  text: 'Time',
+                  style: {
+                      color: '#3EE679',
+                  },
+              },
+              labels: {
+                  style: {
+                      colors: '#3EE679',
+                  },
+              },
+          },
+          yaxis: [
+              {
+                  title: {
+                      text: 'Temperature (°C)',
+                      style: {
+                          color: '#f73207',
+                      },
+                  },
+                  labels: {
+                      style: {
+                          colors: '#f73207',
+                      },
+                  },
+              },
+              {
+                  opposite: true,
+                  title: {
+                      text: 'Humidity (%)',
+                      style: {
+                          color: '#3EE679',
+                      },
+                  },
+                  labels: {
+                      style: {
+                          colors: '#3EE679',
+                      },
+                  },
+              },
+          ],
+          title: {
+              text: 'Temp / Humid',
+              align: 'center',
+              style: {
+                  color: '#3EE679',
+                  fontSize: '18px',
+              },
+          },
+          grid: {
+              borderColor: '#3EE679',
+          },
+          tooltip: {
+              theme: 'dark',
+          },
+          stroke: {
+              curve: 'smooth',
+              width: 1,
+              colors: ['#f70f0f', '#e80c94', '#3EE679', '#58cc41'],
+          },
+            fill: {
+            opacity: [0.85, 0.90, 1],
+            gradient: {
+              inverseColors: true,
+              shade: 'light',
+              opacityFrom: 0.85,
+              opacityTo: 0.55,
+              stops: [0, 100, 100, 100]
+            }
+          },
+          legend: {
+              labels: {
+                  colors: '#3EE679',
+              },
+          },
+          plotOptions: {
+              bar: {
+                  columnWidth: '20%',
+              },
+          },
+          series: filteredSeries,
+      };
+  };
+
     onMounted(async () => {
       await nextTick();
       if (props.multipleDevices) {
@@ -300,7 +350,7 @@ export default defineComponent({
     });
 
     watch(
-      () => props.selectedDevice,
+      () => props.selectedDevices,
       () => {
         if (!props.multipleDevices) {
           fetchDeviceHistory();
@@ -365,7 +415,7 @@ export default defineComponent({
   font-size: medium;
 }
 
-.station-name {
+.device-name {
   position: absolute;
   display: flex;
   justify-content: center;
@@ -402,11 +452,11 @@ export default defineComponent({
 
 /* Responsive layout for smaller screens */
 @media (max-width: 600px) {
-  .station-data {
+  .device-data {
     max-height: 100%; /* Adjust for smaller screens */
   }
 
-  .station-container-header {
+  .device-container-header {
     height: 60px; /* Reduce header height */
   }
 
