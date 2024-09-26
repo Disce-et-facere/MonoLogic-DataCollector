@@ -174,6 +174,10 @@ void httpsTask(void *pvParameter) {
 }
 
 esp_err_t httpsAuthenticate(void) {
+  ESP_LOGE(HTTPTAG, "You need to auth the MAC address before!");
+  printMAC();
+  return ESP_ERR_INVALID_RESPONSE;
+
   ESP_LOGI(HTTPTAG, "Trying to auth");
   esp_http_client_config_t config = {
       .url = "https://www.skippings.com/api/iot-device",
