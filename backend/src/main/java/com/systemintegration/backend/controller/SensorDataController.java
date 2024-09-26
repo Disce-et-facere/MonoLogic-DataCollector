@@ -21,6 +21,8 @@ import com.systemintegration.backend.service.IpDataService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @RestController
 @RequestMapping("/api/sensor-data")
@@ -126,7 +128,12 @@ public class SensorDataController {
                 sensorData.setLongitude(longitude);
             }
 
-            // Save sensor data to the database
+            // Set the timestamp to the current time if it's not provided
+            LocalDateTime timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS); // Truncate to seconds
+            if (sensorData.getTimestamp() == null) {
+                sensorData.setTimestamp(timestamp);
+            }
+
             sensorData.setMac(mac);
             sensorDataService.saveSensorData(sensorData);
 
