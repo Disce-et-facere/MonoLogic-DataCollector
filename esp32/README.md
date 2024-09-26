@@ -19,7 +19,7 @@ Run `idf.py -p PORT flash monitor` to build, flash and monitor the project.
 
 ### Configuring wifi
 
-You can run the bash script setting.sh if you have a bash compliant shell with the arguments USB-Port, SSID, Password and Name in that order.\
+You can run the bash script `setting.sh` if you have a bash compliant shell with the arguments USB-Port, SSID, Password and Name in that order.\
 The ESP will echo back SSID OK and so on if it parsed it correctly.
 
 If you do not have access to a bash script you need to send the data manually, SSID is prefixed with an ascii s, 
