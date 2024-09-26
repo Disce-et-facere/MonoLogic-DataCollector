@@ -4,7 +4,6 @@ SSID="$2"
 PASSWORD="$3"
 NAME="$4"
 
-
 function readData() {
   echo -n "$1" > $USB_PORT
   GREPRESULT=""
@@ -18,7 +17,6 @@ function readData() {
     fi
    done
 }
-
 
 echo "Sending SSID: $SSID"
 readData "s$SSID" "SSID OK"
