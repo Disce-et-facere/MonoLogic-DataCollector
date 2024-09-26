@@ -19,5 +19,8 @@ COPY . .
 # Make port available
 EXPOSE 9000
 
+# Run Dev-Server or Build static files for production
+CMD ["/bin/sh", "-c", "if [ \"$ENVIRONMENT\" = 'production' ]; then quasar build; else quasar dev; fi"]
+
 # Serve the app
-CMD ["quasar", "dev"]
+# CMD ["quasar", "dev"]

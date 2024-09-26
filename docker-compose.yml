@@ -8,6 +8,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/ssl:/etc/nginx/ssl
+      - ./frontend/dist/spa:/usr/share/nginx/html
     depends_on:
       - frontend
       - backend
@@ -20,6 +21,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    env_file:
+    - ./.env
     expose: # to nginx (reverse-proxy)
       - "${VUE_PORT}"
 
