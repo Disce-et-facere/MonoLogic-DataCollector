@@ -72,7 +72,6 @@
                 <div class="submit-btn">
                   <q-btn
                     label="Add"
-                    type="submit"
                     color="secondary"
                     @click="addDevice"
                   ></q-btn>
