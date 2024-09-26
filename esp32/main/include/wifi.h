@@ -4,8 +4,6 @@
 #ifndef _wifi_h
 #define _wifi_h
 
-static const char *WIFITAG = "wifi station";
-
 bool wifiInitStation(settings_t *settings);
 void printMAC(void);
 
