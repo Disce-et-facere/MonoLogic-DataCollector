@@ -7,6 +7,7 @@
 #include "esp_wifi.h"
 #include "freertos/idf_additions.h"
 #include "include/dht11.h"
+#include "include/usb.h"
 #include "include/wifi.h"
 #include "portmacro.h"
 #include <stdio.h>
@@ -120,9 +121,9 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt) {
 
 void httpsTask(void *pvParameter) {
 #define buffSize 128
-  if (wifiInitStation()) {
-
-    dht_t *dht = (dht_t *)pvParameter;
+  settings_t *settingsPtr = (settings_t *)pvParameter;
+  if (wifiInitStation(settingsPtr)) {
+    dht_t *dht = settingsPtr->dht;
 
     uint8_t mac[6];
     esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
@@ -171,6 +172,8 @@ void httpsTask(void *pvParameter) {
       vTaskDelay((updateTime * 1000) / portTICK_PERIOD_MS);
     }
   }
+  ESP_LOGE("WIFI", "Could not establish wifi connection!");
+  vTaskDelete(NULL);
 }
 
 esp_err_t httpsAuthenticate(void) {

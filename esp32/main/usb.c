@@ -7,6 +7,10 @@
 #include "projdefs.h"
 #include <stdio.h>
 
+static const char *ESP_ssid = "SSID";
+static const char *ESP_pw = "PASSWORD";
+static const char *ESP_Name = "NAME";
+
 static interpret_ret interpretInput(char *str, settings_t *settings) {
   switch (str[0]) {
   case 's':
@@ -60,23 +64,35 @@ static esp_err_t nvsCommit(const char *key, char *buffer) {
     ret = nvs_commit(nvsHandle);
     if (ret != ESP_OK) {
       ESP_LOGI("NVS", "commit failed");
+      nvs_close(nvsHandle);
+      return ret;
     }
   }
   nvs_close(nvsHandle);
+  ESP_LOGI("NVS", "commit good %s", key);
   return ret;
+}
+
+static void nvsCommitAll(settings_t *settings) {
+  ESP_LOGI("USB", "Committing...");
+  nvsCommit(ESP_ssid, settings->SSID);
+  nvsCommit(ESP_pw, settings->password);
+  nvsCommit(ESP_Name, settings->name);
 }
 
 esp_err_t settingsInit(settings_t *settings) {
   if (settings == NULL) {
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
   }
-  (void)nvsRead(ssid, settings->SSID, sizeof(settings->SSID));
-  (void)nvsRead(pw, settings->password, sizeof(settings->password));
-  (void)nvsRead(name, settings->name, sizeof(settings->name));
+  (void)nvsRead(ESP_ssid, settings->SSID, sizeof(settings->SSID));
+  (void)nvsRead(ESP_pw, settings->password, sizeof(settings->password));
+  (void)nvsRead(ESP_Name, settings->name, sizeof(settings->name));
   return ESP_OK;
 }
 
 void usbTask(void *pvParameter) {
+  settings_t *settingsPtr = (settings_t *)pvParameter;
+
   const tinyusb_config_t tusb_cfg = {
       .device_descriptor = NULL,
       .string_descriptor = NULL,
@@ -92,9 +108,6 @@ void usbTask(void *pvParameter) {
 
   ESP_ERROR_CHECK(tusb_cdc_acm_init(&acm_cfg));
 
-  settings_t *settingsPtr = (settings_t *)malloc(sizeof(settings_t));
-  ESP_ERROR_CHECK(settingsInit(settingsPtr));
-
   char buffer[bufferSize];
   while (1) {
     if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
@@ -103,10 +116,7 @@ void usbTask(void *pvParameter) {
       case INTERP_OK:
         break;
       case INTERP_COMMIT:
-        nvsCommit(ssid, settingsPtr->SSID);
-        nvsCommit(pw, settingsPtr->SSID);
-        nvsCommit(name, settingsPtr->SSID);
-        ESP_LOGI("USB", "Commit");
+        nvsCommitAll(settingsPtr);
         break;
       case INTERP_RESTART:
         esp_restart();
@@ -115,8 +125,8 @@ void usbTask(void *pvParameter) {
         ESP_LOGI("USB", "Bad data");
         break;
       case INTERP_REQ_PRINT:
-        printf("SSID: %s\nPW: %s\nName: %s\n", settingsPtr->SSID,
-               settingsPtr->password, settingsPtr->name);
+        ESP_LOGI("USB", "Current settings\nSSID: %s\nPW: %s\nName: %s",
+                 settingsPtr->SSID, settingsPtr->password, settingsPtr->name);
         break;
       }
     }

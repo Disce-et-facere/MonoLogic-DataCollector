@@ -33,7 +33,7 @@ void app_main(void) {
 
   TaskHandle_t httpsHandle = NULL;
   BaseType_t taskRet =
-      xTaskCreate(&httpsTask, "http task", 8192, dhtStructPtr, 5, &httpsHandle);
+      xTaskCreate(&httpsTask, "http task", 8192, settingsPtr, 5, &httpsHandle);
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(httpsHandle);
     ESP_LOGE("HTTP", "Could not allocate memory for task");
@@ -50,7 +50,7 @@ void app_main(void) {
   }
 
   TaskHandle_t usbHandle = NULL;
-  taskRet = xTaskCreate(&usbTask, "USB Task", 4096, NULL, 5, &usbHandle);
+  taskRet = xTaskCreate(&usbTask, "USB Task", 4096, settingsPtr, 5, &usbHandle);
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(usbHandle);
     ESP_LOGE("USB", "Could not allocate memory for task");

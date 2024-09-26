@@ -8,10 +8,6 @@
 
 #define bufferSize 64
 
-const char *ssid = "SSID";
-const char *pw = "PASSWORD";
-const char *name = "NAME";
-
 typedef enum interpret_ret {
   INTERP_OK,
   INTERP_RESTART,
