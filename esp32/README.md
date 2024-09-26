@@ -1,19 +1,11 @@
-# Wifi and MQTT arduino for the temperature monitor
+# Wifi temperature Sensor
 
-This is heavily based on the esp-idf example for wifi connection before we built it out\
 I can not guarantee it works on any other esp other than ESP32-S3FN8
 
-### Configure the project
+### Configure the Build 
 
-Open the project configuration menu (`idf.py menuconfig`).
-
-In the `Example Configuration` menu:
-
-* Set the Wi-Fi configuration.
-    * Set `WiFi SSID`.
-    * Set `WiFi Password`.
-
-Optional: If you need, change the other options according to your requirements.
+Open the project configuration menu (`idf.py menuconfig`).\
+If you are building it yourself you need to enable tinyUSB wifi credentials will be set up after over USB.
 
 ### Build and Flash
 
@@ -24,6 +16,20 @@ Build the project and flash it to the board, then run the monitor tool to view t
 Run `idf.py -p PORT flash monitor` to build, flash and monitor the project.
 
 (To exit the serial monitor, type ``Ctrl-]``.)
+
+### Configuring wifi
+
+You can run the bash script setting.sh if you have a bash compliant shell with the arguments USB-Port, SSID, Password and Name in that order.\
+The ESP will echo back SSID OK and so on if it parsed it correctly.\ 
+
+If you do not have access to a bash script you need to send the data manually, SSID is prefixed with an ascii s, 
+password an ascii p and name with an ascii n. e.g. to set the name to "ESPTemp" send the string "nESPTemp".\
+To save the data you need to send an ascii c to commit it to the flash memory.\
+
+The esp will send over the current config if you send it an ascii g\ 
+
+When you've setup wifi credentials you can go ahead and restart the ESP with a button or by sending ascii r.\
+
 
 See the Getting Started Guide for all the steps to configure and use the ESP-IDF to build projects.
 
