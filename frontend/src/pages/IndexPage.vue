@@ -652,7 +652,7 @@ export default defineComponent({
     };
 
     onMounted(async () => {
-      pollInterval.value = setInterval(pollingFunction, 5000);
+      pollInterval.value = setInterval(pollingFunction, 5000) as unknown as number;
       if (globeContainer.value) {
         try {
           await new Promise<void>((resolve, reject) => {
