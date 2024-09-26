@@ -1,20 +1,62 @@
 #include "include/usb.h"
+#include "esp_err.h"
+#include "esp_log.h"
+#include "esp_system.h"
 #include "freertos/idf_additions.h"
+#include "nvs.h"
+#include "projdefs.h"
 #include <stdint.h>
 #include <stdio.h>
 
-static void interpretInput(char *str, settings_t *settings) {
+static interpret_ret interpretInput(char *str, settings_t *settings) {
   switch (str[0]) {
   case 's':
     snprintf(settings->SSID, bufferSize, "%s", (str + 1));
-    break;
+    return INTERP_OK;
   case 'p':
     snprintf(settings->password, bufferSize, "%s", (str + 1));
-    break;
+    return INTERP_OK;
   case 'n':
     snprintf(settings->name, bufferSize, "%s", (str + 1));
-    break;
+    return INTERP_OK;
+  case 'r':
+    return INTERP_RESTART;
+  case 'c':
+    return INTERP_COMMIT;
   }
+  return INTERPED_BAD_DATA;
+}
+
+static esp_err_t nvsRead(const char *key, char *buffer, size_t buffSize) {
+  ESP_LOGI("NVS", "NVS starting");
+  nvs_handle_t nvsHandle;
+  esp_err_t ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
+  if (ret == ESP_OK) {
+    ret = nvs_get_str(nvsHandle, key, buffer, &buffSize);
+    switch (ret) {
+    case ESP_OK:
+      ESP_LOGI("NVS", "Read good on key %s", key);
+      break;
+    case ESP_ERR_NVS_NOT_FOUND:
+      ESP_LOGI("NVS", "Could not find key %s", key);
+      buffer[0] = '\0';
+      break;
+    }
+  }
+  nvs_close(nvsHandle);
+  return ret;
+}
+
+static esp_err_t nvsCommit() { return ESP_OK; }
+
+static esp_err_t settingsInit(settings_t *settings) {
+  if (settings == NULL) {
+    return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+  }
+  (void)nvsRead("SSID", settings->SSID, sizeof(settings->SSID));
+  (void)nvsRead("password", settings->password, sizeof(settings->password));
+  (void)nvsRead("name", settings->name, sizeof(settings->name));
+  return ESP_OK;
 }
 
 void usbTask(void *pvParameter) {
@@ -30,17 +72,33 @@ void usbTask(void *pvParameter) {
 
   tinyusb_config_cdcacm_t acm_cfg = {
       0}; // the configuration uses default values
+
   ESP_ERROR_CHECK(tusb_cdc_acm_init(&acm_cfg));
 
-  settings_t settings = {0};
+  settings_t *settingsPtr = (settings_t *)malloc(sizeof(settings_t));
+  ESP_ERROR_CHECK(settingsInit(settingsPtr));
 
   char buffer[bufferSize];
   while (1) {
     if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-      interpretInput(buffer, &settings);
+      interpretInput(buffer, settingsPtr);
+      switch (interpretInput(buffer, settingsPtr)) {
+      case INTERP_OK:
+        break;
+      case INTERP_COMMIT:
+        nvsCommit();
+        ESP_LOGI("USB", "Commit");
+        break;
+      case INTERP_RESTART:
+        esp_restart();
+        break;
+      case INTERPED_BAD_DATA:
+        ESP_LOGI("USB", "Bad data");
+        break;
+      }
     }
-    printf("SSID: %s\nPW: %s\nName: %s\n", settings.SSID, settings.password,
-           settings.name);
+    printf("SSID: %s\nPW: %s\nName: %s\n", settingsPtr->SSID,
+           settingsPtr->password, settingsPtr->name);
     vTaskDelay((2 * 1000) / portTICK_PERIOD_MS);
   }
 }

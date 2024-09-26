@@ -7,6 +7,13 @@
 
 #define bufferSize 64
 
+typedef enum interpret_ret {
+  INTERP_OK,
+  INTERP_RESTART,
+  INTERP_COMMIT,
+  INTERPED_BAD_DATA,
+} interpret_ret;
+
 typedef struct settings_t {
   char name[bufferSize];
   char SSID[bufferSize];

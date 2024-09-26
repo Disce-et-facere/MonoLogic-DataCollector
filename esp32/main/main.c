@@ -23,10 +23,13 @@ void app_main(void) {
   }
   ESP_ERROR_CHECK(ret);
 
+  /*
   // NVS testing
   int32_t amountHTTPSSent = 0;
   const char *nvsTAG = "NVS";
   ESP_LOGI(nvsTAG, "Opening NVS");
+
+
   nvs_handle_t nvsHandle;
   ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
   if (ret == ESP_OK) {
@@ -58,6 +61,7 @@ void app_main(void) {
   }
 
   ESP_LOGI(nvsTAG, "Value is %d", (int)amountHTTPSSent);
+  */
 
   dht_t *dhtStructPtr = (dht_t *)malloc(sizeof(dht_t));
   ESP_ERROR_CHECK(dhtInit(dhtStructPtr));
