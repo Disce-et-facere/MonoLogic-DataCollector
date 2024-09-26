@@ -823,7 +823,7 @@ export default defineComponent({
   left: 10px;
   gap: 5px;
   border-radius: 5px;
-  z-index: 1;
+  z-index: 999;
   position: relative;
 }
 
@@ -880,7 +880,7 @@ export default defineComponent({
   left: 10px;
   gap: 5px;
   border-radius: 5px;
-  z-index: 1;
+  z-index: 999;
   position: relative;
 }
 
