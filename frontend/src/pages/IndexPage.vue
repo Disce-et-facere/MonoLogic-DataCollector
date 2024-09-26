@@ -223,14 +223,17 @@ import {
   ref,
   computed,
   onMounted,
-  onBeforeUnmount,
+  onBeforeUnmount
 } from 'vue';
 import Globe from 'globe.gl';
 import LoadingScreen from '../components/LoadingScreen.vue';
 import StationDataPanel from '../components/StationDataPanel.vue';
 import DeviceDataPanel from '../components/DeviceDataPanel.vue';
-import earthTexture from 'src/assets/earth-high-res.jpg';
+// import earthTexture from 'src/assets/earth-high-res.jpg';
 import axios from 'axios';
+
+const earthTexture =
+  'https://system-integration-iot.imgix.net/earth-high-res.dea8b4dc.jpg';
 
 interface Station {
   key: string;
@@ -253,7 +256,7 @@ export default defineComponent({
   components: {
     LoadingScreen,
     StationDataPanel,
-    DeviceDataPanel,
+    DeviceDataPanel
   },
   setup() {
     const globeContainer = ref<HTMLElement | null>(null);
@@ -290,25 +293,29 @@ export default defineComponent({
           'https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json'
         );
 
-        if (response && response.status === 200 && response.data && response.data.station) {
+        if (
+          response &&
+          response.status === 200 &&
+          response.data &&
+          response.data.station
+        ) {
           console.log('API - Station response OK!');
           stations.value = response.data.station;
           updateGlobePoints();
         } else {
           console.log('API - Station response NOT OK! Invalid data structure.');
         }
-
       } catch (error) {
         if (error instanceof Error) {
-            console.error('Error fetching stations:', error.message);
+          console.error('Error fetching stations:', error.message);
         } else {
-            console.error('Error fetching stations:', error);
+          console.error('Error fetching stations:', error);
         }
       }
     };
 
     const filteredStations = computed(() => {
-      return stations.value.filter((station) =>
+      return stations.value.filter(station =>
         station.name
           .toLowerCase()
           .includes(stationSearchText.value.toLowerCase())
@@ -316,7 +323,7 @@ export default defineComponent({
     });
 
     const selectStation = (station: Station) => {
-      if (!selectedStations.value.find((s) => s.key === station.key)) {
+      if (!selectedStations.value.find(s => s.key === station.key)) {
         selectedStations.value.push(station);
         updateGlobePoints();
       }
@@ -324,7 +331,7 @@ export default defineComponent({
 
     const removeStation = (stationKey: string) => {
       selectedStations.value = selectedStations.value.filter(
-        (s) => s.key !== stationKey
+        s => s.key !== stationKey
       );
     };
 
@@ -401,14 +408,22 @@ export default defineComponent({
                 const tempDevice: Device = {
                   mac: newDevice.mac,
                   name: newDevice.name,
-                  temperature: Array.isArray(newDevice.temperature) ? newDevice.temperature : [newDevice.temperature],
-                  humidity: Array.isArray(newDevice.humidity) ? newDevice.humidity : [newDevice.humidity],
-                  timestamp: Array.isArray(newDevice.timestamp) ? newDevice.timestamp : [newDevice.timestamp],
+                  temperature: Array.isArray(newDevice.temperature)
+                    ? newDevice.temperature
+                    : [newDevice.temperature],
+                  humidity: Array.isArray(newDevice.humidity)
+                    ? newDevice.humidity
+                    : [newDevice.humidity],
+                  timestamp: Array.isArray(newDevice.timestamp)
+                    ? newDevice.timestamp
+                    : [newDevice.timestamp],
                   latitude: newDevice.latitude,
-                  longitude: newDevice.longitude,
+                  longitude: newDevice.longitude
                 };
 
-                const existingDevice = devices.value.find(device => device.mac === tempDevice.mac);
+                const existingDevice = devices.value.find(
+                  device => device.mac === tempDevice.mac
+                );
 
                 if (existingDevice) {
                   existingDevice.temperature.push(...tempDevice.temperature);
@@ -422,12 +437,17 @@ export default defineComponent({
               updateGlobePoints();
             }
           } else {
-            console.log('Error: Expected an array of devices, but received:', newDevices);
+            console.log(
+              'Error: Expected an array of devices, but received:',
+              newDevices
+            );
           }
         } else {
-          console.log('Error: Invalid response structure or status code not 200!');
+          console.log(
+            'Error: Invalid response structure or status code not 200!'
+          );
         }
-      } catch (error: unknown) {
+      } catch (error) {
         if (error instanceof Error) {
           console.error('API-1 - No devices in database:', error.message);
         } else {
@@ -437,7 +457,7 @@ export default defineComponent({
     };
 
     const filteredDevices = computed(() => {
-      return devices.value.filter((devices) =>
+      return devices.value.filter(devices =>
         devices.name
           .toLowerCase()
           .includes(deviceSearchText.value.toLowerCase())
@@ -445,7 +465,7 @@ export default defineComponent({
     });
 
     const selectDevice = (device: Device) => {
-      if (!selectedDevices.value.find((s) => s.mac === device.mac)) {
+      if (!selectedDevices.value.find(s => s.mac === device.mac)) {
         selectedDevices.value.push(device);
         updateGlobePoints();
       }
@@ -453,7 +473,7 @@ export default defineComponent({
 
     const removeDevice = (deviceKey: string) => {
       selectedDevices.value = selectedDevices.value.filter(
-        (s) => s.mac !== deviceKey
+        s => s.mac !== deviceKey
       );
     };
 
@@ -519,7 +539,9 @@ export default defineComponent({
         const mac = macValueAdd.value;
         const name = nameValue.value;
 
-        const url = `/api/iot-device?name=${encodeURIComponent(name)}&mac=${encodeURIComponent(mac)}`;
+        const url = `/api/iot-device?name=${encodeURIComponent(
+          name
+        )}&mac=${encodeURIComponent(mac)}`;
 
         // Send the POST request
         const response = await axios.post(url);
@@ -535,8 +557,8 @@ export default defineComponent({
     };
 
     const clearAddBtnPanel = () => {
-      addMsg.value = ('');
-    }
+      addMsg.value = '';
+    };
     // <-- add device
 
     // delete device -->
@@ -548,18 +570,18 @@ export default defineComponent({
 
         const response = await axios.delete(url);
         console.log('Device deleted successfully:', response.data);
-        deleteMsg.value = ('DEVICE DELETED!');
+        deleteMsg.value = 'DEVICE DELETED!';
 
         macValueAdd.value = '';
       } catch (error) {
         console.error('There was an error deleting the device:', error);
-        deleteMsg.value = ('DELETE FAILED!');
+        deleteMsg.value = 'DELETE FAILED!';
       }
     };
 
     const clearDeleteBtnPanel = () => {
-      deleteMsg.value = ('');
-    }
+      deleteMsg.value = '';
+    };
     // <-- delete device
 
     const handleResize = () => {
@@ -582,9 +604,9 @@ export default defineComponent({
         }> = [];
 
         // Adds stations
-        stations.value.forEach((station) => {
+        stations.value.forEach(station => {
           const isInSelectedStations = selectedStations.value?.some(
-            (selected) => selected.key === station.key
+            selected => selected.key === station.key
           );
           pointsData.push({
             lat: station.latitude,
@@ -593,25 +615,25 @@ export default defineComponent({
             radius: 0.05,
             color: isInSelectedStations ? 'green' : 'red',
             label: station.name,
-            name: station.name,
+            name: station.name
           });
         });
 
-         // Adds devices
-         devices.value.forEach((device) => {
-           const isInSelectedDevices = selectedDevices.value?.some(
-             (selected) => selected.mac === device.mac
-           );
-           pointsData.push({
-             lat: device.latitude,
-             lng: device.longitude,
-             size: 0,
-             radius: 0.05,
-             color: isInSelectedDevices ? 'green' : 'blue',
-             label: device.name,
-             name: device.name,
-           });
-         });
+        // Adds devices
+        devices.value.forEach(device => {
+          const isInSelectedDevices = selectedDevices.value?.some(
+            selected => selected.mac === device.mac
+          );
+          pointsData.push({
+            lat: device.latitude,
+            lng: device.longitude,
+            size: 0,
+            radius: 0.05,
+            color: isInSelectedDevices ? 'green' : 'blue',
+            label: device.name,
+            name: device.name
+          });
+        });
 
         globeInstance.value.pointsData(pointsData);
       }
@@ -646,7 +668,7 @@ export default defineComponent({
           globe.onPointClick((point: { name?: string }) => {
             if (point?.name) {
               const clickedStation = stations.value.find(
-                (station) => station.name === point.name
+                station => station.name === point.name
               );
               if (clickedStation) {
                 selectStation(clickedStation);
@@ -706,9 +728,9 @@ export default defineComponent({
       addDevice,
       deleteDevice,
       addMsg,
-      deleteMsg,
+      deleteMsg
     };
-  },
+  }
 });
 </script>
 
@@ -875,8 +897,8 @@ export default defineComponent({
   max-width: 1000px;
 }
 
-.msgContainer{
-  display:flex;
+.msgContainer {
+  display: flex;
   justify-content: center;
   align-items: center;
 }
