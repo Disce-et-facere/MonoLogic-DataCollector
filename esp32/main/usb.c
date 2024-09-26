@@ -15,13 +15,13 @@ static interpret_ret interpretInput(char *str, settings_t *settings) {
   switch (str[0]) {
   case 's':
     snprintf(settings->SSID, bufferSize, "%s", (str + 1));
-    return INTERP_OK;
+    return INTERP_OK_SSID;
   case 'p':
     snprintf(settings->password, bufferSize, "%s", (str + 1));
-    return INTERP_OK;
+    return INTERP_OK_PW;
   case 'n':
     snprintf(settings->name, bufferSize, "%s", (str + 1));
-    return INTERP_OK;
+    return INTERP_OK_NAME;
   case 'r':
     return INTERP_RESTART;
   case 'c':
@@ -113,7 +113,14 @@ void usbTask(void *pvParameter) {
     if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
       interpretInput(buffer, settingsPtr);
       switch (interpretInput(buffer, settingsPtr)) {
-      case INTERP_OK:
+      case INTERP_OK_SSID:
+        ESP_LOGI("USB", "SSID OK");
+        break;
+      case INTERP_OK_NAME:
+        ESP_LOGI("USB", "NAME OK");
+        break;
+      case INTERP_OK_PW:
+        ESP_LOGI("USB", "PW OK");
         break;
       case INTERP_COMMIT:
         nvsCommitAll(settingsPtr);

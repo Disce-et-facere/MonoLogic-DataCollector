@@ -9,7 +9,9 @@
 #define bufferSize 64
 
 typedef enum interpret_ret {
-  INTERP_OK,
+  INTERP_OK_SSID,
+  INTERP_OK_PW,
+  INTERP_OK_NAME,
   INTERP_RESTART,
   INTERP_COMMIT,
   INTERPED_BAD_DATA,

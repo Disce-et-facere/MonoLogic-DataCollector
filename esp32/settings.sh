@@ -4,13 +4,27 @@ SSID="$2"
 PASSWORD="$3"
 NAME="$4"
 
-echo -n "s$SSID" > $USB_PORT
-echo "Sent SSID: $SSID"
-sleep 2
 
-echo -n "p$PASSWORD" > $USB_PORT
-echo "Sent password: $PASSWORD"
-sleep 2
+function readData() {
+  echo -n "$1" > $USB_PORT
+  GREPRESULT=""
+   while true;
+   do
+    read LINE < $USB_PORT
+    GREPRESULT=$(echo $LINE | rg -i "$2")
+    if [ ! -z "$GREPRESULT" ]; then
+      echo "$GREPRESULT"
+      return 
+    fi
+   done
+}
 
-echo -n "n$NAME" > $USB_PORT
-echo "Sent name: $NAME"
+
+echo "Sending SSID: $SSID"
+readData "s$SSID" "SSID OK"
+
+echo "Sending password: $PASSWORD"
+readData "p$PASSWORD" "PW OK"
+
+echo "Sending name: $NAME"
+readData "n$NAME" "NAME OK"
