@@ -44,7 +44,7 @@
 
       <!--ADD/DELETE DEVICE-->
       <div class="add-delete-btn">
-        <q-btn color="secondary" label="Add device" @click="openAddDeviceMenu">
+        <q-btn color="secondary" label="Add device" @Click="clearAddBtnPanel">
           <q-menu dark anchor="bottom left" class="bg-transparent no-shadow">
             <div class="add-btn-form-container">
               <q-form class="q-gutter-md">
@@ -60,7 +60,7 @@
                 />
 
                 <q-input
-                  v-model="macValue"
+                  v-model="macValueAdd"
                   outlined
                   class="custom-input"
                   color="secondary"
@@ -78,6 +78,9 @@
                   ></q-btn>
                 </div>
               </q-form>
+              <div v-if="addMsg" class="text-positive msgContainer">
+                {{ addMsg }}
+              </div>
             </div>
           </q-menu>
         </q-btn>
@@ -85,13 +88,13 @@
         <q-btn
           color="accent"
           label="Delete device"
-          @click="openDeleteDeviceMenu"
+          @Click="clearDeleteBtnPanel"
         >
           <q-menu dark anchor="bottom left" class="bg-transparent no-shadow">
             <div class="add-btn-form-container">
               <q-form class="q-gutter-md">
                 <q-input
-                  v-model="macValue"
+                  v-model="macValueDelete"
                   outlined
                   class="custom-input"
                   color="accent"
@@ -109,6 +112,9 @@
                   ></q-btn>
                 </div>
               </q-form>
+              <div v-if="deleteMsg" class="text-negative msgContainer">
+                {{ deleteMsg }}
+              </div>
             </div>
           </q-menu>
         </q-btn>
@@ -185,7 +191,7 @@
       </q-chip>
     </div>
 
-    <!--DEVICE  v-if="selectedDevices.length > 0 && isDeviceSelected" -->
+    <!--DEVICE-->
     <div
       v-if="selectedDevices.length > 0 && isDeviceSelected"
       class="device-container"
@@ -234,12 +240,11 @@ interface Station {
 }
 
 interface Device {
-  id: number;
   mac: string;
   name: string;
-  temperature: number;
-  humidity: number;
-  timestamp: string;
+  temperature: number[];
+  humidity: number[];
+  timestamp: string[];
   latitude: number;
   longitude: number;
 }
@@ -268,23 +273,37 @@ export default defineComponent({
     const isDeviceSelected = ref(false);
     const isAddDeviceClicked = ref(false);
     const isDeleteDeviceClicked = ref(false);
-    // add device
+    const emptyDevices = ref(false);
+    const isNoApiDevices = ref(false);
+    // add/delete device
     const nameValue = ref('');
-    const macValue = ref('');
-    const addDeviceMenu = ref(false);
-    const deleteDeviceMenu = ref(false);
+    const macValueAdd = ref('');
+    const macValueDelete = ref('');
+    const addMsg = ref('');
+    const deleteMsg = ref('');
 
     // Station sections -->
     const fetchStations = async () => {
       console.log('API - Fetching stations...');
       try {
-        // const response = await axios.get(
-        //   'https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json'
-        // );
-        // stations.value = response.data.station;
-        // updateGlobePoints();
+        const response = await axios.get(
+          'https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json'
+        );
+
+        if (response && response.status === 200 && response.data && response.data.station) {
+          console.log('API - Station response OK!');
+          stations.value = response.data.station;
+          updateGlobePoints();
+        } else {
+          console.log('API - Station response NOT OK! Invalid data structure.');
+        }
+
       } catch (error) {
-        console.error('Error fetching stations:', error);
+        if (error instanceof Error) {
+            console.error('Error fetching stations:', error.message);
+        } else {
+            console.error('Error fetching stations:', error);
+        }
       }
     };
 
@@ -361,11 +380,59 @@ export default defineComponent({
     // device section -->
     const fetchDevices = async () => {
       try {
+        console.log('Fetching devices!');
         const response = await axios.get('/api/sensor-data');
-        devices.value = response.data.device;
-        updateGlobePoints();
-      } catch (error) {
-        console.error('Error fetching devices:', error);
+
+        console.log('Response received:', response);
+
+        if (response && response.status === 200) {
+          const newDevices = response.data;
+
+          console.log('Incoming devices:', newDevices);
+
+          if (Array.isArray(newDevices)) {
+            if (newDevices.length === 0) {
+              emptyDevices.value = true;
+              console.log('No devices found in the database.');
+            } else {
+              console.log('Devices fetched successfully!');
+
+              newDevices.forEach((newDevice: Device) => {
+                const tempDevice: Device = {
+                  mac: newDevice.mac,
+                  name: newDevice.name,
+                  temperature: Array.isArray(newDevice.temperature) ? newDevice.temperature : [newDevice.temperature],
+                  humidity: Array.isArray(newDevice.humidity) ? newDevice.humidity : [newDevice.humidity],
+                  timestamp: Array.isArray(newDevice.timestamp) ? newDevice.timestamp : [newDevice.timestamp],
+                  latitude: newDevice.latitude,
+                  longitude: newDevice.longitude,
+                };
+
+                const existingDevice = devices.value.find(device => device.mac === tempDevice.mac);
+
+                if (existingDevice) {
+                  existingDevice.temperature.push(...tempDevice.temperature);
+                  existingDevice.humidity.push(...tempDevice.humidity);
+                  existingDevice.timestamp.push(...tempDevice.timestamp);
+                } else {
+                  devices.value.push(tempDevice);
+                }
+              });
+
+              updateGlobePoints();
+            }
+          } else {
+            console.log('Error: Expected an array of devices, but received:', newDevices);
+          }
+        } else {
+          console.log('Error: Invalid response structure or status code not 200!');
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('API-1 - No devices in database:', error.message);
+        } else {
+          console.error('API-2 - Error fetching devices:', error);
+        }
       }
     };
 
@@ -384,25 +451,31 @@ export default defineComponent({
       }
     };
 
-    const removeDevice = (stationKey: string) => {
-      selectedStations.value = selectedStations.value.filter(
-        (s) => s.key !== stationKey
+    const removeDevice = (deviceKey: string) => {
+      selectedDevices.value = selectedDevices.value.filter(
+        (s) => s.mac !== deviceKey
       );
     };
 
     const handleSelectedDevices = () => {
-      if (selectedStations.value && selectedStations.value.length > 1) {
+      if (selectedDevices.value && selectedDevices.value.length > 1) {
         displayMultipleDevices();
       } else {
-        displaySingleDevice(selectedStations.value[0]);
+        displaySingleDevice(selectedDevices.value[0]);
       }
     };
 
-    const displaySingleDevice = (station: Station) => {
-      isStationSelected.value = true;
+    const displaySingleDevice = (device: Device) => {
+      if (!device || !device.latitude || !device.longitude) {
+        console.error('Invalid device data:', device);
+        return;
+      }
+
+      isDeviceSelected.value = true;
       if (globeInstance.value) {
+        console.log('Selected Device:', device);
         globeInstance.value.pointOfView(
-          { lat: station.latitude, lng: station.longitude, altitude: 0.1 },
+          { lat: device.latitude, lng: device.longitude, altitude: 0.1 },
           2000
         );
         updateGlobePoints();
@@ -412,9 +485,9 @@ export default defineComponent({
     };
 
     const displayMultipleDevices = () => {
-      multipleStations.value = true;
-      isStationSelected.value = true;
-      stationSearchText.value = '';
+      multipleDevices.value = true;
+      isDeviceSelected.value = true;
+      deviceSearchText.value = '';
       if (globeInstance.value) {
         globeInstance.value.pointOfView(
           { lat: 62.1282, lng: 13.6435, altitude: 0.3 },
@@ -440,50 +513,54 @@ export default defineComponent({
     // <-- device section
 
     // add device -->
-    function openAddDeviceMenu() {
-      addDeviceMenu.value = true;
-      nameValue.value = '';
-      macValue.value = '';
-    }
 
-    function openDeleteDeviceMenu() {
-      deleteDeviceMenu.value = true;
-      macValue.value = '';
-    }
+    const addDevice = async () => {
+      try {
+        const mac = macValueAdd.value;
+        const name = nameValue.value;
 
-    function addDevice() {
-      const deviceReg = {
-        mac: macValue.value,
-        name: nameValue.value,
-      };
-      axios
-        .post('/api/iot-device', deviceReg)
-        .then((response) => {
-          console.log('Device added successfully:', response.data);
-          nameValue.value = '';
-          macValue.value = '';
-          addDeviceMenu.value = false;
-        })
-        .catch((error) => {
-          console.error('There was an error adding the device:', error);
-        });
-    }
+        const url = `/api/iot-device?name=${encodeURIComponent(name)}&mac=${encodeURIComponent(mac)}`;
 
-    function deleteDevice() {
-      const macAddress = macValue.value;
+        // Send the POST request
+        const response = await axios.post(url);
+        console.log('Device added successfully:', response.data);
+        addMsg.value = 'DEVICE ADDED!';
 
-      axios
-        .delete(`/api/iot-device/${macAddress}`)
-        .then((response) => {
-          console.log('Device deleted successfully:', response.data);
-          macValue.value = '';
-          deleteDeviceMenu.value = false;
-        })
-        .catch((error) => {
-          console.error('There was an error deleting the device:', error);
-        });
+        nameValue.value = '';
+        macValueAdd.value = '';
+      } catch (error) {
+        console.error('There was an error adding the device:', error);
+        addMsg.value = 'ADDING FAILED!';
+      }
+    };
+
+    const clearAddBtnPanel = () => {
+      addMsg.value = ('');
     }
     // <-- add device
+
+    // delete device -->
+    const deleteDevice = async () => {
+      try {
+        const macAddress = macValueDelete.value;
+
+        const url = `/api/iot-device?mac=${encodeURIComponent(macAddress)}`;
+
+        const response = await axios.delete(url);
+        console.log('Device deleted successfully:', response.data);
+        deleteMsg.value = ('DEVICE DELETED!');
+
+        macValueAdd.value = '';
+      } catch (error) {
+        console.error('There was an error deleting the device:', error);
+        deleteMsg.value = ('DELETE FAILED!');
+      }
+    };
+
+    const clearDeleteBtnPanel = () => {
+      deleteMsg.value = ('');
+    }
+    // <-- delete device
 
     const handleResize = () => {
       if (globeInstance.value) {
@@ -520,21 +597,21 @@ export default defineComponent({
           });
         });
 
-        // // Adds devices
-        // devices.value.forEach((device) => {
-        //   const isInSelectedDevices = selectedDevices.value?.some(
-        //     (selected) => selected.mac === device.mac
-        //   );
-        //   pointsData.push({
-        //     lat: device.latitude,
-        //     lng: device.longitude,
-        //     size: 0,
-        //     radius: 0.05,
-        //     color: isInSelectedDevices ? 'green' : 'blue',
-        //     label: device.name,
-        //     name: device.name,
-        //   });
-        // });
+         // Adds devices
+         devices.value.forEach((device) => {
+           const isInSelectedDevices = selectedDevices.value?.some(
+             (selected) => selected.mac === device.mac
+           );
+           pointsData.push({
+             lat: device.latitude,
+             lng: device.longitude,
+             size: 0,
+             radius: 0.05,
+             color: isInSelectedDevices ? 'green' : 'blue',
+             label: device.name,
+             name: device.name,
+           });
+         });
 
         globeInstance.value.pointsData(pointsData);
       }
@@ -614,17 +691,22 @@ export default defineComponent({
       isDeviceSelected,
       isAddDeviceClicked,
       isDeleteDeviceClicked,
+      emptyDevices,
+      isNoApiDevices,
       selectDevice,
       closeDeviceContainer,
       handleSelectedDevices,
       removeDevice,
-      // add device
+      // add/delete device
       nameValue,
-      macValue,
-      openAddDeviceMenu,
-      openDeleteDeviceMenu,
+      macValueAdd,
+      macValueDelete,
+      clearAddBtnPanel,
+      clearDeleteBtnPanel,
       addDevice,
       deleteDevice,
+      addMsg,
+      deleteMsg,
     };
   },
 });
@@ -791,6 +873,12 @@ export default defineComponent({
   flex-direction: column;
   width: 90vw;
   max-width: 1000px;
+}
+
+.msgContainer{
+  display:flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .add-delete-btns {

@@ -2,6 +2,9 @@ services:
   nginx:
     container_name: reverse-proxy
     image: nginx:latest
+    stdin_open: true                # Needed for HMR
+    environment:
+      - CHOKIDAR_USEPOLLING=true    # Needed for HMRcontainer_name: reverse-proxy
     ports:
       - "80:80"   # HTTP
       - "443:443" # HTTPS
@@ -22,6 +25,9 @@ services:
       - /app/node_modules
     expose: # to nginx (reverse-proxy)
       - "${VUE_PORT}"
+    stdin_open: true                # Needed for HMR
+    environment:
+      - CHOKIDAR_USEPOLLING=true    # Needed for HMR
 
   backend:
     container_name: backend
@@ -41,6 +47,9 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    stdin_open: true                # Needed for HMR
+    environment:
+      - CHOKIDAR_USEPOLLING=true    # Needed for HMR
 
   mysql:
     container_name: db-mysql

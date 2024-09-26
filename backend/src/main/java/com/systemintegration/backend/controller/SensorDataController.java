@@ -1,19 +1,23 @@
 package com.systemintegration.backend.controller;
 
-import com.systemintegration.backend.dto.SensorDataResponseDTO;
-import com.systemintegration.backend.model.SensorData;
-import com.systemintegration.backend.service.SensorDataService;
-import com.systemintegration.backend.service.IoTDeviceService;
-import com.systemintegration.backend.service.IpDataService;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.systemintegration.backend.dto.SensorDataResponseDTO;
+import com.systemintegration.backend.model.SensorData;
+import com.systemintegration.backend.service.IoTDeviceService;
+import com.systemintegration.backend.service.SensorDataService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sensor-data")
@@ -25,8 +29,8 @@ public class SensorDataController {
     @Autowired
     private IoTDeviceService deviceService;
 
-    @Autowired
-    private IpDataService ipDataService;
+    //@Autowired
+    //private IpDataService ipDataService;
 
     @GetMapping
     public ResponseEntity<List<SensorDataResponseDTO>> getAllSensorData() {
@@ -87,18 +91,18 @@ public class SensorDataController {
 
         if (isValid) {
             // Perform IP lookup to get the location data
-            String clientIp = request.getHeader("X-Forwarded-For");
-            Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
-            System.out.println("IP Location data: " + ipLocation);
+            //String clientIp = request.getHeader("X-Forwarded-For");
+            //Map<String, Object> ipLocation = ipDataService.getIpLocation(clientIp);
+            //System.out.println("IP Location data: " + ipLocation);
 
             // Extract latitude and longitude from the IP lookup response
-            Double latitude = (Double) ipLocation.get("latitude");
-            Double longitude = (Double) ipLocation.get("longitude");
+           // Double latitude = (Double) ipLocation.get("latitude");
+            //Double longitude = (Double) ipLocation.get("longitude");
 
             // Save sensor data to the database
             sensorData.setMac(mac);
-            sensorData.setLatitude(latitude); // Set the latitude
-            sensorData.setLongitude(longitude); // Set the longitude
+            //sensorData.setLatitude(latitude); // Set the latitude
+            //sensorData.setLongitude(longitude); // Set the longitude
 
             sensorDataService.saveSensorData(sensorData);
             return ResponseEntity.ok("Sensor data saved successfully");
