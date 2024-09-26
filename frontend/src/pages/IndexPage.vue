@@ -232,7 +232,7 @@ import DeviceDataPanel from '../components/DeviceDataPanel.vue';
 import axios from 'axios';
 
 const earthTexture =
-  'https://system-integration-iot.imgix.net/earth-high-res.dea8b4dc.jpg';
+  'https://system-integration-iot.imgix.net/earth-high-res.dea8b4dc.jpg?auto=format,compress&q=100';
 
 interface Station {
   key: string;
