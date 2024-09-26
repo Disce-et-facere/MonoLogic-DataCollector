@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "wifi.c" "dht11.c" "https.c"
+idf_component_register(SRCS "main.c" "wifi.c" "dht11.c" "https.c" "usb.c"
                     INCLUDE_DIRS "."
                     PRIV_REQUIRES 
                     esp_wifi 

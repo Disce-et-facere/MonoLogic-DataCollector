@@ -5,6 +5,7 @@
 #include "freertos/projdefs.h"
 #include "include/dht11.h"
 #include "include/https.h"
+#include "include/usb.h"
 #include "include/wifi.h"
 #include "nvs.h"
 #include "nvs_flash.h"
@@ -76,6 +77,14 @@ void app_main(void) {
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(dhtHandle);
     ESP_LOGE("DHT", "Could not allocate memory for task");
+    esp_restart();
+  }
+
+  TaskHandle_t usbHandle = NULL;
+  taskRet = xTaskCreate(&usbTask, "USB Task", 4096, NULL, 5, &usbHandle);
+  if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
+    vTaskDelete(usbHandle);
+    ESP_LOGE("USB", "Could not allocate memory for task");
     esp_restart();
   }
 }
