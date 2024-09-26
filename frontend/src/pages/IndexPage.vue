@@ -337,8 +337,10 @@ export default defineComponent({
 
     const handleSelectedStations = () => {
       if (selectedStations.value && selectedStations.value.length > 1) {
+        closeDeviceContainer();
         displayMultipleStations();
       } else {
+        closeDeviceContainer();
         displaySingleStation(selectedStations.value[0]);
       }
     };
@@ -479,8 +481,10 @@ export default defineComponent({
 
     const handleSelectedDevices = () => {
       if (selectedDevices.value && selectedDevices.value.length > 1) {
+        closeStationContainer();
         displayMultipleDevices();
       } else {
+        closeStationContainer();
         displaySingleDevice(selectedDevices.value[0]);
       }
     };
@@ -868,6 +872,7 @@ export default defineComponent({
 .device-chip {
   background-color: rgba(62, 230, 121, 0.7);
   color: white;
+  left: 260px;
 }
 
 .device-container {
