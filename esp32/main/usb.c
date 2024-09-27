@@ -5,6 +5,8 @@
 #include "freertos/idf_additions.h"
 #include "nvs.h"
 #include "projdefs.h"
+#include "tinyusb.h"
+#include "tusb_cdc_acm.h"
 #include <stdio.h>
 
 static const char *ESP_ssid = "SSID";
@@ -12,24 +14,34 @@ static const char *ESP_pw = "PASSWORD";
 static const char *ESP_Name = "NAME";
 
 static interpret_ret interpretInput(char *str, settings_t *settings) {
-  switch (str[0]) {
-  case 's':
-    snprintf(settings->SSID, bufferSize, "%s", (str + 1));
-    return INTERP_OK_SSID;
-  case 'p':
-    snprintf(settings->password, bufferSize, "%s", (str + 1));
-    return INTERP_OK_PW;
-  case 'n':
-    snprintf(settings->name, bufferSize, "%s", (str + 1));
-    return INTERP_OK_NAME;
-  case 'r':
-    return INTERP_RESTART;
-  case 'c':
-    return INTERP_COMMIT;
-  case 'g':
-    return INTERP_REQ_PRINT;
+  if (xSemaphoreTake(*settings->mutex, (TickType_t)10)) {
+    switch (str[0]) {
+    case 's':
+      snprintf(settings->SSID, bufferSize, "%s", (str + 1));
+      xSemaphoreGive(*settings->mutex);
+      return INTERP_OK_SSID;
+    case 'p':
+      snprintf(settings->password, bufferSize, "%s", (str + 1));
+      xSemaphoreGive(*settings->mutex);
+      return INTERP_OK_PW;
+    case 'n':
+      snprintf(settings->name, bufferSize, "%s", (str + 1));
+      xSemaphoreGive(*settings->mutex);
+      return INTERP_OK_NAME;
+    case 'r':
+      xSemaphoreGive(*settings->mutex);
+      return INTERP_RESTART;
+    case 'c':
+      xSemaphoreGive(*settings->mutex);
+      return INTERP_COMMIT;
+    case 'g':
+      xSemaphoreGive(*settings->mutex);
+      return INTERP_REQ_PRINT;
+    }
+    xSemaphoreGive(*settings->mutex);
+    return INTERP_BAD_DATA;
   }
-  return INTERPED_BAD_DATA;
+  return INTERP_NO_MUTEX;
 }
 
 static esp_err_t nvsRead(const char *key, char *buffer, size_t buffSize) {
@@ -53,7 +65,6 @@ static esp_err_t nvsRead(const char *key, char *buffer, size_t buffSize) {
 }
 
 static esp_err_t nvsCommit(const char *key, char *buffer) {
-  /*ESP_LOGI("NVS", "NVS starting");*/
   nvs_handle_t nvsHandle;
   esp_err_t ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
   if (ret == ESP_OK) {
@@ -69,7 +80,6 @@ static esp_err_t nvsCommit(const char *key, char *buffer) {
     }
   }
   nvs_close(nvsHandle);
-  /*ESP_LOGI("NVS", "commit good %s", key);*/
   return ret;
 }
 
@@ -93,6 +103,12 @@ static void nvsCommitAll(settings_t *settings) {
 
 esp_err_t settingsInit(settings_t *settings) {
   if (settings == NULL) {
+    return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+  }
+  SemaphoreHandle_t mutex;
+  mutex = xSemaphoreCreateMutex();
+  if (mutex == NULL) {
+    ESP_LOGE("MUTEX", "Mutex creation failed");
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
   }
   (void)nvsRead(ESP_ssid, settings->SSID, sizeof(settings->SSID));
@@ -139,12 +155,15 @@ void usbTask(void *pvParameter) {
       case INTERP_RESTART:
         esp_restart();
         break;
-      case INTERPED_BAD_DATA:
+      case INTERP_BAD_DATA:
         ESP_LOGI("USB", "Bad data");
         break;
       case INTERP_REQ_PRINT:
         ESP_LOGI("USB", "Current settings\nSSID: %s\nPW: %s\nName: %s",
                  settingsPtr->SSID, settingsPtr->password, settingsPtr->name);
+        break;
+      case INTERP_NO_MUTEX:
+        ESP_LOGE("USB", "Could not get mutex");
         break;
       }
     }

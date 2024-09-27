@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "freertos/event_groups.h"
+#include "freertos/idf_additions.h"
 #include "freertos/task.h"
 #include "include/usb.h"
 #include <stdint.h>
@@ -102,18 +103,21 @@ bool wifiInitStation(settings_t *settings) {
           },
   };
 
-  for (int i = 0; i < 32; i++) {
-    wifi_config.sta.ssid[i] = settings->SSID[i];
-    if (settings->SSID[i] == '\0') {
-      break;
+  if (xSemaphoreTake(*settings->mutex, (TickType_t)10)) {
+    for (int i = 0; i < 32; i++) {
+      wifi_config.sta.ssid[i] = settings->SSID[i];
+      if (settings->SSID[i] == '\0') {
+        break;
+      }
     }
-  }
 
-  for (int i = 0; i < 64; i++) {
-    wifi_config.sta.password[i] = settings->password[i];
-    if (settings->password[i] == '\0') {
-      break;
+    for (int i = 0; i < 64; i++) {
+      wifi_config.sta.password[i] = settings->password[i];
+      if (settings->password[i] == '\0') {
+        break;
+      }
     }
+    xSemaphoreGive(*settings->mutex);
   }
 
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));

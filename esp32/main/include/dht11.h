@@ -1,11 +1,13 @@
 #ifndef __dht11_h
 #define __dht11_h
 
+#include "freertos/idf_additions.h"
 #include "soc/gpio_num.h"
 #include <stdbool.h>
 #include <stdint.h>
 
 #define dhtTimeBetweenRead 5
+#define bufferSize 64
 
 typedef enum dht_err_t {
   DHT_OK,
@@ -28,8 +30,16 @@ typedef struct dht_t {
   dhtValue humidity;
 } dht_t;
 
+typedef struct settings_t {
+  char name[bufferSize];
+  char SSID[bufferSize];
+  char password[bufferSize];
+  dht_t *dht;
+  SemaphoreHandle_t *mutex;
+} settings_t;
+
 dht_err_t dhtInit(dht_t *dht);
-dht_err_t dhtRead(dht_t *dht);
+dht_err_t dhtRead(settings_t *settings);
 void dhtTask(void *pvParameter);
 float getDHTValue(dhtValue *dhtValue);
 

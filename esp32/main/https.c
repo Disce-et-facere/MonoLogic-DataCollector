@@ -6,7 +6,6 @@
 #include "esp_wifi.h"
 #include "freertos/idf_additions.h"
 #include "include/dht11.h"
-#include "include/usb.h"
 #include "include/wifi.h"
 #include "portmacro.h"
 #include <stdio.h>
@@ -147,9 +146,12 @@ void httpsTask(void *pvParameter) {
         esp_http_client_set_header(client, "Content-Type", "application/json");
 
         char post[buffSize];
-        snprintf(post, buffSize, "{\"temperature\":%.1f,\"humidity\":%.1f}",
-                 getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
-        dht->sent = true;
+        if (xSemaphoreTake(*settingsPtr->mutex, (TickType_t)10) == pdTRUE) {
+          snprintf(post, buffSize, "{\"temperature\":%.1f,\"humidity\":%.1f}",
+                   getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
+          dht->sent = true;
+          xSemaphoreGive(*settingsPtr->mutex);
+        }
         ESP_LOGI(HTTPTAG, "%s", post);
 
         esp_http_client_set_post_field(client, post, strlen(post));

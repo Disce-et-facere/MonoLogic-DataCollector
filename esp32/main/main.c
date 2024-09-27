@@ -40,8 +40,7 @@ void app_main(void) {
   }
 
   TaskHandle_t dhtHandle = NULL;
-  taskRet =
-      xTaskCreate(&dhtTask, "DHT task", 4096, dhtStructPtr, 5, &dhtHandle);
+  taskRet = xTaskCreate(&dhtTask, "DHT task", 4096, settingsPtr, 5, &dhtHandle);
   if (taskRet == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) {
     vTaskDelete(dhtHandle);
     ESP_LOGE("DHT", "Could not allocate memory for task");

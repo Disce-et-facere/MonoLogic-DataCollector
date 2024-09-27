@@ -5,6 +5,7 @@
 #include "esp_timer.h"
 #include "freertos/idf_additions.h"
 #include "hal/gpio_types.h"
+#include "include/usb.h"
 #include "rom/ets_sys.h"
 #include "soc/gpio_num.h"
 #include <stdint.h>
@@ -41,8 +42,9 @@ void wakeDHT(dht_t *dht) {
   gpio_set_direction(dht->gpio, GPIO_MODE_INPUT);
 }
 
-dht_err_t dhtRead(dht_t *dht) {
+dht_err_t dhtRead(settings_t *settings) {
   int64_t curTime = esp_timer_get_time();
+  dht_t *dht = settings->dht;
   if (dht->lastRead > curTime - 2000000) {
     return DHT_READ_TOO_EARLY;
   }
@@ -76,11 +78,14 @@ dht_err_t dhtRead(dht_t *dht) {
     return DHT_FAIL;
   }
 
-  dht->temperature.integer = incomingData[2];
-  dht->temperature.decimal = incomingData[3];
-  dht->humidity.integer = incomingData[0];
-  dht->humidity.decimal = incomingData[1];
-  dht->sent = false;
+  if (xSemaphoreTake(*settings->mutex, (TickType_t)10)) {
+    dht->temperature.integer = incomingData[2];
+    dht->temperature.decimal = incomingData[3];
+    dht->humidity.integer = incomingData[0];
+    dht->humidity.decimal = incomingData[1];
+    dht->sent = false;
+    xSemaphoreGive(*settings->mutex);
+  }
 
   return DHT_OK;
 }
@@ -90,11 +95,12 @@ float getDHTValue(dhtValue *dhtValue) {
 }
 
 void dhtTask(void *pvParameter) {
-  dht_t *dhtStructPtr = (dht_t *)pvParameter;
+  settings_t *settings = (settings_t *)pvParameter;
+  dht_t *dhtStructPtr = settings->dht;
   vTaskDelay((dhtTimeBetweenRead * 1000) / portTICK_PERIOD_MS);
   ESP_LOGI(DHTTAG, "Entering dht loop");
   while (true) {
-    dht_err_t dhtStatus = dhtRead(dhtStructPtr);
+    dht_err_t dhtStatus = dhtRead(settings);
     switch (dhtStatus) {
     case DHT_OK:
       ESP_LOGI(DHTTAG, "Temp: %.1f\tHumidity: %.1f%%",
