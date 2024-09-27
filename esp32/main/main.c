@@ -10,7 +10,6 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
-#include <stdint.h>
 #include <stdlib.h>
 
 void app_main(void) {
