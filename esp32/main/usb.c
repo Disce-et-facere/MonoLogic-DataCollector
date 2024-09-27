@@ -125,13 +125,13 @@ void usbTask(void *pvParameter) {
       interpretInput(buffer, settingsPtr);
       switch (interpretInput(buffer, settingsPtr)) {
       case INTERP_OK_SSID:
-        ESP_LOGI("USB", "SSID OK");
+        ESP_LOGI("USB", "SSID OK: %s", settingsPtr->SSID);
         break;
       case INTERP_OK_NAME:
-        ESP_LOGI("USB", "NAME OK");
+        ESP_LOGI("USB", "NAME OK: %s", settingsPtr->name);
         break;
       case INTERP_OK_PW:
-        ESP_LOGI("USB", "PW OK");
+        ESP_LOGI("USB", "PW OK: %s", settingsPtr->password);
         break;
       case INTERP_COMMIT:
         nvsCommitAll(settingsPtr);

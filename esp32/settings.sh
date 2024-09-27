@@ -6,7 +6,6 @@ NAME="$4"
 declare -i NUMOK=0
 
 function readData() {
-  #echo -n "$1" #> $USB_PORT
   GREPRESULT=""
    while true;
    do
@@ -16,8 +15,6 @@ function readData() {
       echo "$GREPRESULT"
       NUMOK=$((NUMOK + 1))
       return 
-    else
-      echo $LINE
     fi
    done
 }
