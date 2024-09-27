@@ -53,7 +53,7 @@ static esp_err_t nvsRead(const char *key, char *buffer, size_t buffSize) {
 }
 
 static esp_err_t nvsCommit(const char *key, char *buffer) {
-  ESP_LOGI("NVS", "NVS starting");
+  /*ESP_LOGI("NVS", "NVS starting");*/
   nvs_handle_t nvsHandle;
   esp_err_t ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
   if (ret == ESP_OK) {
@@ -69,15 +69,26 @@ static esp_err_t nvsCommit(const char *key, char *buffer) {
     }
   }
   nvs_close(nvsHandle);
-  ESP_LOGI("NVS", "commit good %s", key);
+  /*ESP_LOGI("NVS", "commit good %s", key);*/
   return ret;
 }
 
 static void nvsCommitAll(settings_t *settings) {
-  ESP_LOGI("USB", "Committing...");
-  nvsCommit(ESP_ssid, settings->SSID);
-  nvsCommit(ESP_pw, settings->password);
-  nvsCommit(ESP_Name, settings->name);
+  /*ESP_LOGI("NVS", "Committing...");*/
+  esp_err_t ret = ESP_OK;
+  ret = nvsCommit(ESP_ssid, settings->SSID);
+  if (ret != ESP_OK) {
+    return;
+  }
+  ret = nvsCommit(ESP_pw, settings->password);
+  if (ret != ESP_OK) {
+    return;
+  }
+  ret = nvsCommit(ESP_Name, settings->name);
+  if (ret != ESP_OK) {
+    return;
+  }
+  ESP_LOGI("NVS", "All commit good");
 }
 
 esp_err_t settingsInit(settings_t *settings) {
