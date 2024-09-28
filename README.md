@@ -1,4 +1,4 @@
-# System Integration IoT
+# MonoLogic Data Collector (IoT)
 
 ## Documentation Links
 
