@@ -82,7 +82,7 @@ static esp_err_t nvsCommit(const char *key, char *buffer) {
 }
 
 static void nvsCommitAll(settings_t *settings) {
-  esp_err_t ret = ESP_OK;
+  esp_err_t ret;
   ret = nvsCommit(ESP_ssid, settings->SSID);
   if (ret != ESP_OK) {
     return;
@@ -146,6 +146,8 @@ void usbTask(void *pvParameter) {
   ESP_ERROR_CHECK(tusb_cdc_acm_init(&acm_cfg));
 
   char buffer[bufferSize];
+  // TODO: Read character by character, encounting a NULL or newline? switch on
+  // it and treat the input accordingly
   while (1) {
     if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
       interpretInput(buffer, settingsPtr);
