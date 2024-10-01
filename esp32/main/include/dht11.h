@@ -14,7 +14,8 @@ typedef enum dht_err_t {
   DHT_TIMEOUT_FAIL,
   DHT_FAIL,
   DHT_READ_TOO_EARLY,
-  DHT_CHECKSUM_FAIL
+  DHT_CHECKSUM_FAIL,
+  DHT_MUTEX_FAIL,
 } dht_err_t;
 
 typedef struct dhtValue {

@@ -85,6 +85,8 @@ dht_err_t dhtRead(settings_t *settings) {
     dht->humidity.decimal = incomingData[1];
     dht->sent = false;
     xSemaphoreGive(settings->mutex);
+  } else {
+    return DHT_MUTEX_FAIL;
   }
 
   return DHT_OK;
@@ -118,6 +120,9 @@ void dhtTask(void *pvParameter) {
       break;
     case DHT_CHECKSUM_FAIL:
       ESP_LOGE(DHTTAG, "Checksum error");
+      break;
+    case DHT_MUTEX_FAIL:
+      ESP_LOGE(DHTTAG, "Failed to aquire mutex");
       break;
     }
     vTaskDelay((dhtTimeBetweenRead * 1000) / portTICK_PERIOD_MS);

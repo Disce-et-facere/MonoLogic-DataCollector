@@ -151,24 +151,27 @@ void httpsTask(void *pvParameter) {
                    getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
           dht->sent = true;
           xSemaphoreGive(settingsPtr->mutex);
-        }
-        ESP_LOGI(HTTPTAG, "%s", post);
 
-        esp_http_client_set_post_field(client, post, strlen(post));
-        esp_err_t err = esp_http_client_perform(client);
+          ESP_LOGI(HTTPTAG, "%s", post);
 
-        if (err == ESP_OK) {
-          ESP_LOGI(HTTPTAG, "HTTPS Status = %d, content_length = %" PRId64,
-                   esp_http_client_get_status_code(client),
-                   esp_http_client_get_content_length(client));
-          if (esp_http_client_get_status_code(client) == 401) {
-            (void)httpsAuthenticate();
+          esp_http_client_set_post_field(client, post, strlen(post));
+          esp_err_t err = esp_http_client_perform(client);
+
+          if (err == ESP_OK) {
+            ESP_LOGI(HTTPTAG, "HTTPS Status = %d, content_length = %" PRId64,
+                     esp_http_client_get_status_code(client),
+                     esp_http_client_get_content_length(client));
+            if (esp_http_client_get_status_code(client) == 401) {
+              (void)httpsAuthenticate();
+            }
+          } else {
+            ESP_LOGE(HTTPTAG, "Error perform http request %s",
+                     esp_err_to_name(err));
           }
+          esp_http_client_cleanup(client);
         } else {
-          ESP_LOGE(HTTPTAG, "Error perform http request %s",
-                   esp_err_to_name(err));
+          ESP_LOGE(HTTPTAG, "Could not aquire mutex");
         }
-        esp_http_client_cleanup(client);
       }
       vTaskDelay((updateTime * 1000) / portTICK_PERIOD_MS);
     }

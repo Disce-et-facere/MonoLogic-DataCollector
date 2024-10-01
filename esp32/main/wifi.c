@@ -118,6 +118,8 @@ bool wifiInitStation(settings_t *settings) {
       }
     }
     xSemaphoreGive(settings->mutex);
+  } else {
+    ESP_LOGE(WIFITAG, "Failed to aquire mutex");
   }
 
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
