@@ -14,31 +14,31 @@ static const char *ESP_pw = "PASSWORD";
 static const char *ESP_Name = "NAME";
 
 static interpret_ret interpretInput(char *str, settings_t *settings) {
-  if (xSemaphoreTake(*settings->mutex, (TickType_t)10)) {
+  if (xSemaphoreTake(settings->mutex, (TickType_t)10)) {
     switch (str[0]) {
     case 's':
       snprintf(settings->SSID, bufferSize, "%s", (str + 1));
-      xSemaphoreGive(*settings->mutex);
+      xSemaphoreGive(settings->mutex);
       return INTERP_OK_SSID;
     case 'p':
       snprintf(settings->password, bufferSize, "%s", (str + 1));
-      xSemaphoreGive(*settings->mutex);
+      xSemaphoreGive(settings->mutex);
       return INTERP_OK_PW;
     case 'n':
       snprintf(settings->name, bufferSize, "%s", (str + 1));
-      xSemaphoreGive(*settings->mutex);
+      xSemaphoreGive(settings->mutex);
       return INTERP_OK_NAME;
     case 'r':
-      xSemaphoreGive(*settings->mutex);
+      xSemaphoreGive(settings->mutex);
       return INTERP_RESTART;
     case 'c':
-      xSemaphoreGive(*settings->mutex);
+      xSemaphoreGive(settings->mutex);
       return INTERP_COMMIT;
     case 'g':
-      xSemaphoreGive(*settings->mutex);
+      xSemaphoreGive(settings->mutex);
       return INTERP_REQ_PRINT;
     }
-    xSemaphoreGive(*settings->mutex);
+    xSemaphoreGive(settings->mutex);
     return INTERP_BAD_DATA;
   }
   return INTERP_NO_MUTEX;
@@ -105,9 +105,8 @@ esp_err_t settingsInit(settings_t *settings) {
   if (settings == NULL) {
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
   }
-  SemaphoreHandle_t mutex;
-  mutex = xSemaphoreCreateMutex();
-  if (mutex == NULL) {
+  settings->mutex = xSemaphoreCreateMutex();
+  if (settings->mutex == NULL) {
     ESP_LOGE("MUTEX", "Mutex creation failed");
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
   }

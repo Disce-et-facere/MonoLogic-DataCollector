@@ -35,7 +35,7 @@ typedef struct settings_t {
   char SSID[bufferSize];
   char password[bufferSize];
   dht_t *dht;
-  SemaphoreHandle_t *mutex;
+  SemaphoreHandle_t mutex;
 } settings_t;
 
 dht_err_t dhtInit(dht_t *dht);

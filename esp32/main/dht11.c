@@ -78,13 +78,13 @@ dht_err_t dhtRead(settings_t *settings) {
     return DHT_FAIL;
   }
 
-  if (xSemaphoreTake(*settings->mutex, (TickType_t)10)) {
+  if (xSemaphoreTake(settings->mutex, (TickType_t)10)) {
     dht->temperature.integer = incomingData[2];
     dht->temperature.decimal = incomingData[3];
     dht->humidity.integer = incomingData[0];
     dht->humidity.decimal = incomingData[1];
     dht->sent = false;
-    xSemaphoreGive(*settings->mutex);
+    xSemaphoreGive(settings->mutex);
   }
 
   return DHT_OK;
