@@ -15,47 +15,45 @@ static const char *ESP_Name = "NAME";
 
 static interpret_ret interpretInput(char *str, settings_t *settings) {
   if (xSemaphoreTake(settings->mutex, (TickType_t)10)) {
+    interpret_ret ret;
     switch (str[0]) {
     case 's':
       snprintf(settings->SSID, bufferSize, "%s", (str + 1));
-      xSemaphoreGive(settings->mutex);
-      return INTERP_OK_SSID;
+      ret = INTERP_OK_SSID;
+      break;
     case 'p':
       snprintf(settings->password, bufferSize, "%s", (str + 1));
-      xSemaphoreGive(settings->mutex);
-      return INTERP_OK_PW;
+      ret = INTERP_OK_PW;
+      break;
     case 'n':
       snprintf(settings->name, bufferSize, "%s", (str + 1));
-      xSemaphoreGive(settings->mutex);
-      return INTERP_OK_NAME;
+      ret = INTERP_OK_NAME;
+      break;
     case 'r':
-      xSemaphoreGive(settings->mutex);
-      return INTERP_RESTART;
+      ret = INTERP_RESTART;
+      break;
     case 'c':
-      xSemaphoreGive(settings->mutex);
-      return INTERP_COMMIT;
+      ret = INTERP_COMMIT;
+      break;
     case 'g':
-      xSemaphoreGive(settings->mutex);
-      return INTERP_REQ_PRINT;
+      ret = INTERP_REQ_PRINT;
+      break;
     }
     xSemaphoreGive(settings->mutex);
-    return INTERP_BAD_DATA;
+    return ret != INTERP_BAD_DATA ? ret : INTERP_BAD_DATA;
   }
   return INTERP_NO_MUTEX;
 }
 
 static esp_err_t nvsRead(const char *key, char *buffer, size_t buffSize) {
-  ESP_LOGI("NVS", "NVS starting");
   nvs_handle_t nvsHandle;
   esp_err_t ret = nvs_open("storage", NVS_READWRITE, &nvsHandle);
   if (ret == ESP_OK) {
     ret = nvs_get_str(nvsHandle, key, buffer, &buffSize);
     switch (ret) {
     case ESP_OK:
-      ESP_LOGI("NVS", "Read good on key %s", key);
       break;
     case ESP_ERR_NVS_NOT_FOUND:
-      ESP_LOGI("NVS", "Could not find key %s", key);
       buffer[0] = '\0';
       break;
     }
@@ -84,7 +82,6 @@ static esp_err_t nvsCommit(const char *key, char *buffer) {
 }
 
 static void nvsCommitAll(settings_t *settings) {
-  /*ESP_LOGI("NVS", "Committing...");*/
   esp_err_t ret = ESP_OK;
   ret = nvsCommit(ESP_ssid, settings->SSID);
   if (ret != ESP_OK) {
@@ -101,6 +98,19 @@ static void nvsCommitAll(settings_t *settings) {
   ESP_LOGI("NVS", "All commit good");
 }
 
+static void nvsReadErrCheck(esp_err_t ret) {
+  switch (ret) {
+  case ESP_OK:
+    return;
+  case ESP_ERR_NVS_NOT_FOUND:
+    ESP_LOGI("NVS", "Key not found");
+    break;
+  case ESP_ERR_NVS_INVALID_HANDLE:
+    ESP_LOGE("NVS", "Handle bad");
+    break;
+  }
+}
+
 esp_err_t settingsInit(settings_t *settings) {
   if (settings == NULL) {
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
@@ -110,9 +120,10 @@ esp_err_t settingsInit(settings_t *settings) {
     ESP_LOGE("MUTEX", "Mutex creation failed");
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
   }
-  (void)nvsRead(ESP_ssid, settings->SSID, sizeof(settings->SSID));
-  (void)nvsRead(ESP_pw, settings->password, sizeof(settings->password));
-  (void)nvsRead(ESP_Name, settings->name, sizeof(settings->name));
+  nvsReadErrCheck(nvsRead(ESP_ssid, settings->SSID, sizeof(settings->SSID)));
+  nvsReadErrCheck(
+      nvsRead(ESP_pw, settings->password, sizeof(settings->password)));
+  nvsReadErrCheck(nvsRead(ESP_Name, settings->name, sizeof(settings->name)));
   return ESP_OK;
 }
 
