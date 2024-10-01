@@ -1,4 +1,5 @@
 #include "include/https.h"
+#include "esp_crt_bundle.h"
 #include "esp_err.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
@@ -128,14 +129,15 @@ void httpsTask(void *pvParameter) {
 
     char url[buffSize];
     snprintf(url, buffSize,
-             "https://www.skippings.com/api/sensor-data/"
+             /*"https://www.skippings.com/api/sensor-data/"*/
+             "https://myapp-latest-lpiy.onrender.com/sensor/add/"
              "%0x2:%0x2:%0x2:%0x2:%0x2:%0x2",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     esp_http_client_config_t config = {
         .url = url,
         .event_handler = _http_event_handler,
-        .skip_cert_common_name_check = true,
+        .crt_bundle_attach = esp_crt_bundle_attach,
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
     };
 
@@ -147,8 +149,10 @@ void httpsTask(void *pvParameter) {
 
         char post[buffSize];
         if (xSemaphoreTake(settingsPtr->mutex, (TickType_t)10) == pdTRUE) {
-          snprintf(post, buffSize, "{\"temperature\":%.1f,\"humidity\":%.1f}",
-                   getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
+          snprintf(
+              post, buffSize,
+              "{\"temperature\":%.1f,\"humidity\":%.1f,\"name\":\"EmilESP\"}",
+              getDHTValue(&dht->temperature), getDHTValue(&dht->humidity));
           dht->sent = true;
           xSemaphoreGive(settingsPtr->mutex);
 
