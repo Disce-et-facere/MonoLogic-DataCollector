@@ -5,13 +5,13 @@
 #include "esp_timer.h"
 #include "freertos/idf_additions.h"
 #include "hal/gpio_types.h"
-#include "include/usb.h"
 #include "rom/ets_sys.h"
 #include "soc/gpio_num.h"
 #include <stdint.h>
 
 static const char *DHTTAG = "DHT";
 
+// TODO: Add gpio pin to settings
 dht_err_t dhtInit(dht_t *dht) {
   if (dht == NULL) {
     return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
@@ -44,6 +44,7 @@ void wakeDHT(dht_t *dht) {
 
 dht_err_t dhtRead(settings_t *settings) {
   int64_t curTime = esp_timer_get_time();
+  // NOTE: Only this func touches lastRead so no mutex needed
   dht_t *dht = settings->dht;
   if (dht->lastRead > curTime - 2000000) {
     return DHT_READ_TOO_EARLY;
@@ -75,7 +76,7 @@ dht_err_t dhtRead(settings_t *settings) {
     return DHT_CHECKSUM_FAIL;
   } else if ((incomingData[0] + incomingData[1] + incomingData[2] +
               incomingData[3] + incomingData[4]) == 0) {
-    return DHT_FAIL;
+    return DHT_BAD_DATA;
   }
 
   if (xSemaphoreTake(settings->mutex, (TickType_t)10)) {
@@ -98,21 +99,18 @@ float getDHTValue(dhtValue *dhtValue) {
 
 void dhtTask(void *pvParameter) {
   settings_t *settings = (settings_t *)pvParameter;
-  dht_t *dhtStructPtr = settings->dht;
-  vTaskDelay((dhtTimeBetweenRead * 1000) / portTICK_PERIOD_MS);
-  ESP_LOGI(DHTTAG, "Entering dht loop");
   while (true) {
-    dht_err_t dhtStatus = dhtRead(settings);
-    switch (dhtStatus) {
+    dht_err_t dhtRet = dhtRead(settings);
+    switch (dhtRet) {
     case DHT_OK:
       ESP_LOGI(DHTTAG, "Temp: %.1f\tHumidity: %.1f%%",
-               getDHTValue(&dhtStructPtr->temperature),
-               getDHTValue(&dhtStructPtr->humidity));
+               getDHTValue(&settings->dht->temperature),
+               getDHTValue(&settings->dht->humidity));
       break;
     case DHT_TIMEOUT_FAIL:
       ESP_LOGE(DHTTAG, "Timeout error");
       break;
-    case DHT_FAIL:
+    case DHT_BAD_DATA:
       ESP_LOGE(DHTTAG, "Unk error in dht");
       break;
     case DHT_READ_TOO_EARLY:

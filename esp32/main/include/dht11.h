@@ -12,7 +12,7 @@
 typedef enum dht_err_t {
   DHT_OK,
   DHT_TIMEOUT_FAIL,
-  DHT_FAIL,
+  DHT_BAD_DATA,
   DHT_READ_TOO_EARLY,
   DHT_CHECKSUM_FAIL,
   DHT_MUTEX_FAIL,

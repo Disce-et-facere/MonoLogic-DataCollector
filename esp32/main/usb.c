@@ -15,7 +15,7 @@ static const char *ESP_Name = "NAME";
 
 static interpret_ret interpretInput(char *str, settings_t *settings) {
   if (xSemaphoreTake(settings->mutex, (TickType_t)10)) {
-    interpret_ret ret;
+    interpret_ret ret = INTERP_BAD_DATA;
     switch (str[0]) {
     case 's':
       snprintf(settings->SSID, bufferSize, "%s", (str + 1));
